@@ -1,37 +1,150 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Recap AI - Newsletter Application
 
-## Getting Started
+A modern, production-grade newsletter application built with Next.js 16, Firebase, and shadcn/ui. Features a minimal, distinctive design with Google and GitHub authentication.
 
-First, run the development server:
+## 🎨 Design Philosophy
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+This application follows strict anti-"AI slop" principles:
+
+- **Distinctive Typography**: Newsreader (serif) for elegance, IBM Plex Mono for code
+- **Minimal Color Palette**: Pure black/white with subtle grays - no purple gradients
+- **True Light/Dark Mode**: Properly designed for both themes, not dark-only
+- **Brutalist Elements**: Sharp borders, squared corners, numbered sections
+- **Restrained Motion**: Subtle hover states, no excessive animations
+- **Content-First**: Clean hierarchy, generous whitespace, readable typography
+
+### What We Avoid
+
+- Generic fonts (Inter, Space Grotesk, Roboto)
+- Clichéd purple/violet gradients
+- Excessive rounded corners and shadows
+- Cookie-cutter layouts
+- Predictable component patterns
+
+## ✨ Features
+
+### Authentication
+
+- ✅ Google OAuth integration
+- ✅ GitHub OAuth integration
+- ✅ Persistent user sessions
+- ✅ User profile dropdown with avatar
+- ✅ Secure sign-out functionality
+
+### Newsletter Subscription
+
+- ✅ Email validation
+- ✅ Firestore integration for subscriber management
+- ✅ Duplicate email detection
+- ✅ Success/error feedback with animations
+- ✅ Responsive form design
+
+### UI Components
+
+- ✅ Production-grade shadcn/ui components
+- ✅ Custom-styled authentication modal
+- ✅ Responsive header with navigation
+- ✅ Hero section with animated gradients
+- ✅ Feature cards with hover effects
+- ✅ Mobile-responsive design
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js 16.1.4 (App Router)
+- **Authentication**: Firebase Auth (Google & GitHub providers)
+- **Database**: Firebase Firestore
+- **Styling**: Tailwind CSS 4.0
+- **UI Components**: shadcn/ui
+- **Icons**: Lucide React
+- **Fonts**: Newsreader (serif), IBM Plex Mono (monospace)
+
+## 📦 Project Structure
+
+```
+newsletter/
+├── app/
+│   ├── layout.tsx          # Root layout with providers
+│   ├── page.tsx            # Homepage with hero & features
+│   └── globals.css         # Global styles & CSS variables
+├── components/
+│   ├── header.tsx          # Navigation header
+│   ├── auth-modal.tsx      # Authentication dialog
+│   ├── user-menu.tsx       # User dropdown menu
+│   ├── newsletter-subscribe.tsx  # Subscription form
+│   └── ui/                 # shadcn/ui components
+├── lib/
+│   ├── firebase.ts         # Firebase configuration
+│   ├── auth-context.tsx    # Auth state management
+│   └── utils.ts            # Utility functions
+└── .env.local              # Environment variables
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Getting Started
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Install Dependencies**
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+   ```bash
+   npm install
+   ```
 
-## Learn More
+2. **Configure Firebase**
+   - Ensure `.env.local` has all Firebase credentials
+   - Enable Google and GitHub authentication in Firebase Console
+   - Set up authorized domains and redirect URIs
 
-To learn more about Next.js, take a look at the following resources:
+3. **Run Development Server**
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+   ```bash
+   npm run dev
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. **Open in Browser**
+   Navigate to `http://localhost:3000`
 
-## Deploy on Vercel
+## 🔐 Firebase Setup
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Authentication Providers
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Google OAuth:**
+
+1. Go to Firebase Console → Authentication → Sign-in method
+2. Enable Google provider
+3. Add authorized domains
+
+**GitHub OAuth:**
+
+1. Create GitHub OAuth App: https://github.com/settings/developers
+2. Set Authorization callback URL: `https://<project-id>.firebaseapp.com/__/auth/handler`
+3. Copy Client ID and Client Secret to Firebase Console
+4. Enable GitHub provider in Firebase
+
+### Firestore Database
+
+Create a `subscribers` collection with the following structure:
+
+```javascript
+{
+  email: string,
+  subscribedAt: timestamp,
+  status: string
+}
+```
+
+## 🎯 Key Features
+
+- **AuthProvider**: Global authentication state management
+- **Newsletter Subscribe**: Production-grade form with validation
+- **Header Component**: Responsive navigation with auth states
+- **Creative Design**: Unique gradients and typography
+
+## 📱 Responsive Design
+
+- Mobile: Single column layout
+- Tablet: 2-column feature grid
+- Desktop: 3-column feature grid
+
+---
+
+Built with ❤️ using Next.js, Firebase, and shadcn/ui
+
 # newsletter
