@@ -35,6 +35,42 @@ export const useAuth = () => {
     return context;
 };
 
+// ==========================================
+// HELPER: Call auth webhook after authentication
+// ==========================================
+
+async function notifyAuthWebhook(user: User, provider: string) {
+    try {
+        const idToken = await user.getIdToken();
+
+        const response = await fetch('/api/(auth)/webhook', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName,
+                photoURL: user.photoURL,
+                provider,
+                idToken,
+            }),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            console.error('Auth webhook error:', error);
+        } else {
+            const result = await response.json();
+            console.log('Auth webhook success:', result);
+        }
+    } catch (error) {
+        console.error('Failed to notify auth webhook:', error);
+        // Don't throw - we don't want to break the auth flow
+    }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
@@ -51,7 +87,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const signInWithGoogle = async () => {
         try {
             const provider = new GoogleAuthProvider();
-            await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+
+            // Notify webhook about the authentication
+            await notifyAuthWebhook(result.user, 'google.com');
         } catch (error) {
             console.error('Error signing in with Google:', error);
             throw error;
@@ -61,7 +100,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const signInWithGithub = async () => {
         try {
             const provider = new GithubAuthProvider();
-            await signInWithPopup(auth, provider);
+            const result = await signInWithPopup(auth, provider);
+
+            // Notify webhook about the authentication
+            await notifyAuthWebhook(result.user, 'github.com');
         } catch (error) {
             console.error('Error signing in with Github:', error);
             throw error;
