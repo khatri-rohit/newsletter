@@ -163,7 +163,7 @@ export default function NewsletterPage() {
                 <article className="bg-white rounded-2xl shadow-xl overflow-hidden">
                     {/* Thumbnail */}
                     {newsletter.thumbnail && (
-                        <div className="w-full h-100 relative overflow-hidden">
+                        <div className="w-full h-full relative overflow-hidden">
                             <img
                                 src={newsletter.thumbnail}
                                 alt={newsletter.title}
@@ -196,16 +196,19 @@ export default function NewsletterPage() {
                                         <Clock className="h-4 w-4" />
                                         {newsletter.metadata.readTime} min read
                                     </span>
-                                    <span className="flex items-center gap-1.5">
-                                        <Eye className="h-4 w-4" />
-                                        {(newsletter.views || 0).toLocaleString()} views
-                                    </span>
+                                    {isAdmin && newsletter.views !== undefined && (
+                                        <span className="flex items-center gap-1.5">
+                                            <Eye className="h-4 w-4" />
+                                            {(newsletter.views || 0).toLocaleString()} views
+                                        </span>
+                                    )}
+
                                 </>
                             )}
                         </div>
 
                         {/* Tags */}
-                        {newsletter.tags && newsletter.tags.length > 0 && (
+                        {/* {newsletter.tags && newsletter.tags.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-6">
                                 {newsletter.tags.map((tag) => (
                                     <Badge key={tag} variant="secondary">
@@ -213,7 +216,7 @@ export default function NewsletterPage() {
                                     </Badge>
                                 ))}
                             </div>
-                        )}
+                        )} */}
 
                         <Separator className="my-6" />
 

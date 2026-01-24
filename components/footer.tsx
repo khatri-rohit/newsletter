@@ -1,6 +1,6 @@
 'use client';
 
-import { Mail, Twitter, Linkedin } from 'lucide-react';
+import { Twitter, Linkedin } from 'lucide-react';
 import { NewsletterSubscribe } from './newsletter-subscribe';
 import Link from 'next/link';
 
@@ -13,11 +13,8 @@ const Footer = () => {
                     {/* Left - Logo and Tagline */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-lg bg-linear-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                                <Mail className="h-5 w-5 text-white" />
-                            </div>
-                            <span className="text-lg font-bold bg-linear-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                AI Intelligence Brief
+                            <span className="text-lg font-bold">
+                                Low Noise
                             </span>
                         </div>
                         <p className="text-sm text-slate-600 leading-relaxed">
@@ -70,7 +67,7 @@ const Footer = () => {
 
                         {/* Copyright */}
                         <p className="text-sm text-slate-600">
-                            © 2026 AI Intelligence Brief. All rights reserved.
+                            © 2026 Low Noise. All rights reserved.
                         </p>
                     </div>
                 </div>

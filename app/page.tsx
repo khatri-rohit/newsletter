@@ -159,7 +159,7 @@ export default function Home() {
                             <img
                               src={newsletter.thumbnail}
                               alt={newsletter.title}
-                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              className="w-full h-full object-cover object-top transition-transform duration-500"
                             />
                           </div>
                         )}
@@ -176,7 +176,7 @@ export default function Home() {
                                   {newsletter.tags[0]}
                                 </div>
                               )} */}
-                              <h3 className="text-xl font-bold text-slate-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                              <h3 className="text-xl font-bold text-slate-900 line-clamp-2 transition-colors">
                                 {newsletter.title}
                               </h3>
                             </div>
@@ -202,7 +202,7 @@ export default function Home() {
                           </p>
 
                           {/* Tags */}
-                          {newsletter.tags && newsletter.tags.length > 1 && (
+                          {/* {newsletter.tags && newsletter.tags.length > 1 && (
                             <div className="flex flex-wrap gap-2">
                               {newsletter.tags.slice(1, 4).map((tag) => (
                                 <span
@@ -213,7 +213,7 @@ export default function Home() {
                                 </span>
                               ))}
                             </div>
-                          )}
+                          )} */}
                         </CardContent>
 
                         {/* Card Footer */}
@@ -224,7 +224,7 @@ export default function Home() {
                             </span>
                             <button
                               onClick={() => handleNewsletterClick(newsletter.slug)}
-                              className="font-semibold text-blue-600 group-hover:underline"
+                              className="font-semibold text-gray-600 group-hover:underline"
                             >
                               Read More →
                             </button>

@@ -19,7 +19,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "AI Intelligence Brief",
+  title: "Low Noise",
   description: "Need-to-know AI news, minus the fluff—served bite-size, every day.",
 };
 
