@@ -9,7 +9,7 @@ import { Mail, Sparkles, TrendingUp } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
       <Header />
 
       {/* Hero Section */}
@@ -30,7 +30,7 @@ export default function Home() {
                 <span className="text-sm font-medium text-blue-900 dark:text-blue-100">AI News, Simplified</span>
               </div>
 
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-blue-800 to-indigo-900 dark:from-slate-100 dark:via-blue-200 dark:to-indigo-100 bg-clip-text text-transparent leading-tight">
+              <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-linear-to-r from-slate-900 via-blue-800 to-indigo-900 dark:from-slate-100 dark:via-blue-200 dark:to-indigo-100 bg-clip-text text-transparent leading-tight">
                 Your Daily AI<br />Intelligence Brief
               </h1>
 
@@ -91,7 +91,7 @@ export default function Home() {
                     className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 p-0 gap-0"
                   >
                     {/* Card Header */}
-                    <CardHeader className="p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 gap-0 grid-rows-none grid-cols-none auto-rows-auto">
+                    <CardHeader className="p-6 border-b border-slate-200 dark:border-slate-700 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 gap-0 grid-rows-none grid-cols-none auto-rows-auto">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">
@@ -138,7 +138,7 @@ export default function Home() {
                     </CardFooter>
 
                     {/* Hover Gradient Effect */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-blue-500/0 via-transparent to-transparent group-hover:from-blue-500/5 transition-all duration-500 pointer-events-none" />
+                    <div className="absolute inset-0 bg-linear-to-t from-blue-500/0 via-transparent to-transparent group-hover:from-blue-500/5 transition-all duration-500 pointer-events-none" />
                   </Card>
                 ))}
               </div>
