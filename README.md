@@ -1,4 +1,4 @@
-# The Recap AI - Newsletter Application
+# The AI Intelligence Brief - Newsletter Application
 
 A modern, production-grade newsletter application built with Next.js 16, Firebase, and shadcn/ui. Features a minimal, distinctive design with Google and GitHub authentication.
 

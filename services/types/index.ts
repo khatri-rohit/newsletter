@@ -142,6 +142,48 @@ export interface AuthWebhookResponse {
 }
 
 // ==========================================
+// NEWSLETTER CONTENT TYPES
+// ==========================================
+
+export interface Newsletter {
+  id?: string;
+  title: string;
+  slug: string;
+  content: string; // Rich HTML content from TipTap editor
+  excerpt: string; // Short summary/preview
+  thumbnail?: string; // URL to thumbnail image
+  status: "draft" | "published" | "scheduled";
+  authorId: string;
+  authorName: string;
+  authorEmail: string;
+  tags?: string[];
+  scheduledFor?: Date | FirebaseFirestore.Timestamp;
+  publishedAt?: Date | FirebaseFirestore.Timestamp;
+  createdAt: Date | FirebaseFirestore.Timestamp;
+  updatedAt: Date | FirebaseFirestore.Timestamp;
+  views?: number;
+  metadata?: {
+    readTime?: number; // Estimated read time in minutes
+    wordCount?: number;
+    imageCount?: number;
+  };
+}
+
+export interface CreateNewsletterInput {
+  title: string;
+  content: string;
+  excerpt: string;
+  thumbnail?: string;
+  tags?: string[];
+  status?: "draft" | "published" | "scheduled";
+  scheduledFor?: Date;
+}
+
+export interface UpdateNewsletterInput extends Partial<CreateNewsletterInput> {
+  id: string;
+}
+
+// ==========================================
 // NEWSLETTER STATS & ANALYTICS
 // ==========================================
 

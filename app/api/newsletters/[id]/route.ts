@@ -1,0 +1,152 @@
+import { NextRequest, NextResponse } from "next/server";
+import * as admin from "firebase-admin";
+import { NewsletterService } from "@/services/newsletter.service";
+
+// Initialize Firebase Admin
+if (admin.apps.length === 0) {
+  admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId: process.env.FIREBASE_PROJECT_ID,
+      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+    }),
+  });
+}
+
+const newsletterService = new NewsletterService();
+
+/**
+ * GET /api/newsletters/[id]
+ * Get a specific newsletter
+ */
+export async function GET(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params;
+    const newsletter = await newsletterService.getNewsletter(id);
+
+    if (!newsletter) {
+      return NextResponse.json(
+        { success: false, error: "Newsletter not found" },
+        { status: 404 },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: newsletter,
+    });
+  } catch (error) {
+    console.error("Error fetching newsletter:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to fetch newsletter",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * PATCH /api/newsletters/[id]
+ * Update a newsletter
+ */
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    // Verify authentication
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const idToken = authHeader.split("Bearer ")[1];
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    // Check if user is admin
+    if (decodedToken.role !== "admin") {
+      return NextResponse.json(
+        { success: false, error: "Forbidden - Admin access required" },
+        { status: 403 },
+      );
+    }
+
+    const { id } = await params;
+    const body = await request.json();
+
+    const newsletter = await newsletterService.updateNewsletter({
+      id,
+      ...body,
+    });
+
+    return NextResponse.json({
+      success: true,
+      data: newsletter,
+    });
+  } catch (error) {
+    console.error("Error updating newsletter:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to update newsletter",
+      },
+      { status: 500 },
+    );
+  }
+}
+
+/**
+ * DELETE /api/newsletters/[id]
+ * Delete a newsletter
+ */
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    // Verify authentication
+    const authHeader = request.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+
+    const idToken = authHeader.split("Bearer ")[1];
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    // Check if user is admin
+    if (decodedToken.role !== "admin") {
+      return NextResponse.json(
+        { success: false, error: "Forbidden - Admin access required" },
+        { status: 403 },
+      );
+    }
+
+    const { id } = await params;
+    await newsletterService.deleteNewsletter(id);
+
+    return NextResponse.json({
+      success: true,
+      message: "Newsletter deleted successfully",
+    });
+  } catch (error) {
+    console.error("Error deleting newsletter:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to delete newsletter",
+      },
+      { status: 500 },
+    );
+  }
+}

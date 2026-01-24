@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Newsreader, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@/components/theme-provider"
 import { AuthProvider } from "@/lib/auth-context";
+import { Toaster } from "@/components/ui/sonner"
 
 const newsreader = Newsreader({
   variable: "--font-newsreader",
@@ -19,7 +19,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "The Recap AI",
+  title: "AI Intelligence Brief",
   description: "Need-to-know AI news, minus the fluff—served bite-size, every day.",
 };
 
@@ -29,20 +29,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body
         className={`${newsreader.variable} ${ibmPlexMono.variable} antialiased`}
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+        <Toaster position="top-center" />
       </body>
     </html>
   );

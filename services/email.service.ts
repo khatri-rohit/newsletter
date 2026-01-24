@@ -28,14 +28,15 @@ interface EmailTemplate {
 class EmailTemplates {
   static welcomeEmail(name: string, email: string): EmailTemplate {
     return {
-      subject: "🎉 Welcome to The Recap AI - Your Daily AI News Starts Now!",
+      subject:
+        "🎉 Welcome to The AI Intelligence Brief - Your Daily AI News Starts Now!",
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>Welcome to The Recap AI</title>
+          <title>Welcome to The AI Intelligence Brief</title>
         </head>
         <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
           <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f9fafb; padding: 40px 0;">
@@ -50,7 +51,7 @@ class EmailTemplates {
                           <span style="font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold;">R</span>
                         </div>
                       </div>
-                      <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: #111827;">Welcome to The Recap AI</h1>
+                      <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: #111827;">Welcome to The AI Intelligence Brief</h1>
                     </td>
                   </tr>
                   
@@ -88,7 +89,7 @@ class EmailTemplates {
                       
                       <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #374151;">
                         Cheers,<br>
-                        <strong>The Recap AI Team</strong>
+                        <strong>The AI Intelligence Brief Team</strong>
                       </p>
                     </td>
                   </tr>
@@ -97,10 +98,10 @@ class EmailTemplates {
                   <tr>
                     <td style="padding: 30px 40px; text-align: center; border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
                       <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
-                        © 2026 The Recap AI. All rights reserved.
+                        © 2026 The AI Intelligence Brief. All rights reserved.
                       </p>
                       <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                        You're receiving this because you signed up for The Recap AI newsletter.
+                        You're receiving this because you signed up for The AI Intelligence Brief newsletter.
                       </p>
                     </td>
                   </tr>
@@ -112,7 +113,7 @@ class EmailTemplates {
         </html>
       `,
       text: `
-Welcome to The Recap AI!
+Welcome to The AI Intelligence Brief!
 
 Hi ${name || "there"},
 
@@ -131,16 +132,16 @@ First newsletter: Tomorrow
 Questions or feedback? Just hit reply—we'd love to hear from you.
 
 Cheers,
-The Recap AI Team
+The AI Intelligence Brief Team
 
-© 2026 The Recap AI. All rights reserved.
+© 2026 The AI Intelligence Brief. All rights reserved.
       `,
     };
   }
 
   static reLoginEmail(name: string, email: string): EmailTemplate {
     return {
-      subject: "👋 Welcome back to The Recap AI!",
+      subject: "👋 Welcome back to The AI Intelligence Brief!",
       html: `
         <!DOCTYPE html>
         <html>
@@ -172,7 +173,7 @@ The Recap AI Team
                       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">Hi ${name || "there"},</p>
                       
                       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                        Great to see you again! You've successfully logged back into The Recap AI. 
+                        Great to see you again! You've successfully logged back into The AI Intelligence Brief. 
                       </p>
                       
                       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
@@ -194,7 +195,7 @@ The Recap AI Team
                       
                       <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #374151;">
                         Cheers,<br>
-                        <strong>The Recap AI Team</strong>
+                        <strong>The AI Intelligence Brief Team</strong>
                       </p>
                     </td>
                   </tr>
@@ -203,7 +204,7 @@ The Recap AI Team
                   <tr>
                     <td style="padding: 30px 40px; text-align: center; border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
                       <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
-                        © 2026 The Recap AI. All rights reserved.
+                        © 2026 The AI Intelligence Brief. All rights reserved.
                       </p>
                       <p style="margin: 0; font-size: 12px; color: #9ca3af;">
                         This email was sent because you logged into your account.
@@ -222,7 +223,7 @@ Welcome Back!
 
 Hi ${name || "there"},
 
-Great to see you again! You've successfully logged back into The Recap AI.
+Great to see you again! You've successfully logged back into The AI Intelligence Brief.
 
 You're all set to continue receiving your daily AI news at 7 AM. We've been busy curating the latest developments in AI, and we can't wait to share them with you.
 
@@ -234,9 +235,9 @@ Newsletter: Daily at 7 AM
 Need help with something? Have feedback? Just hit reply—we're here to help.
 
 Cheers,
-The Recap AI Team
+The AI Intelligence Brief Team
 
-© 2026 The Recap AI. All rights reserved.
+© 2026 The AI Intelligence Brief. All rights reserved.
       `,
     };
   }
@@ -304,7 +305,7 @@ export class EmailService {
 
     try {
       const info = await this.transporter.sendMail({
-        from: `"The Recap AI" <${this.config.user}>`,
+        from: `"The AI Intelligence Brief" <${this.config.user}>`,
         to,
         subject: template.subject,
         text: template.text,
@@ -351,7 +352,7 @@ export class EmailService {
       const promises = batch.map(async (subscriber) => {
         try {
           await this.transporter!.sendMail({
-            from: `"The Recap AI" <${this.config.user}>`,
+            from: `"The AI Intelligence Brief" <${this.config.user}>`,
             to: subscriber.email,
             subject,
             text: textContent,

@@ -1,71 +1,74 @@
 'use client';
 
 import { useState } from 'react';
-import { collection, addDoc, serverTimestamp, query, where, getDocs } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Loader2, Check, AlertCircle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { toast } from "sonner"
+import { z } from "zod";
+
 
 export function NewsletterSubscribe() {
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
-    const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-    const [message, setMessage] = useState('');
+
+    const schema = z.object({
+        email: z.string().email(),
+    });
 
     const handleSubscribe = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!email || !email.includes('@')) {
-            setStatus('error');
-            setMessage('Please enter a valid email address');
+        const validation = schema.safeParse({ email });
+        console.log(validation)
+
+        if (!validation.success) {
+            toast.error('Invalid Email', {
+                description: validation.error.issues[0].message,
+                descriptionClassName: 'text-gray-900!',
+            });
             return;
         }
 
         try {
             setLoading(true);
-            setStatus('idle');
-            setMessage('');
 
-            // Check if email already exists
-            const subscribersRef = collection(db, 'subscribers');
-            const q = query(subscribersRef, where('email', '==', email));
-            const querySnapshot = await getDocs(q);
-
-            if (!querySnapshot.empty) {
-                setStatus('error');
-                setMessage('This email is already subscribed!');
-                setLoading(false);
-                return;
-            }
-
-            // Add new subscriber
-            await addDoc(subscribersRef, {
-                email,
-                subscribedAt: serverTimestamp(),
-                status: 'active',
+            // Call API route instead of direct Firestore access
+            const response = await fetch('/api/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email }),
             });
 
-            setStatus('success');
-            setMessage('Successfully subscribed! Check your inbox.');
-            setEmail('');
+            const data = await response.json();
 
-            // Reset status after 5 seconds
-            setTimeout(() => {
-                setStatus('idle');
-                setMessage('');
-            }, 5000);
+            if (data.success) {
+                toast.success('Success! 🎉', {
+                    description: data.message,
+                    descriptionClassName: 'text-gray-900!',
+                });
+                setEmail('');
+            } else {
+                toast.error('Subscription Failed', {
+                    description: data.error || 'Something went wrong. Please try again.',
+                    descriptionClassName: 'text-gray-900!',
+                });
+            }
         } catch (error) {
             console.error('Error subscribing:', error);
-            setStatus('error');
-            setMessage('Something went wrong. Please try again.');
+            toast.error('Error', {
+                description: 'Something went wrong. Please try again.',
+                descriptionClassName: 'text-gray-900!',
+            });
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="w-full max-w-md mx-auto space-y-4">
+        <div className="w-full max-w-md mx-auto">
             <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
                 <Input
                     type="email"
@@ -78,7 +81,7 @@ export function NewsletterSubscribe() {
                 <Button
                     type="submit"
                     disabled={loading}
-                    className="h-11 px-8 font-light"
+                    className="h-11 px-8 font-light cursor-pointer"
                 >
                     {loading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
@@ -87,22 +90,6 @@ export function NewsletterSubscribe() {
                     )}
                 </Button>
             </form>
-
-            {status !== 'idle' && (
-                <div
-                    className={`flex items-center justify-center gap-2 p-3 border text-sm ${status === 'success'
-                            ? 'bg-emerald-50 text-emerald-900 border-emerald-200 dark:bg-emerald-950 dark:text-emerald-100 dark:border-emerald-800'
-                            : 'bg-red-50 text-red-900 border-red-200 dark:bg-red-950 dark:text-red-100 dark:border-red-800'
-                        }`}
-                >
-                    {status === 'success' ? (
-                        <Check className="h-4 w-4" />
-                    ) : (
-                        <AlertCircle className="h-4 w-4" />
-                    )}
-                    <span className="font-light">{message}</span>
-                </div>
-            )}
         </div>
     );
 }

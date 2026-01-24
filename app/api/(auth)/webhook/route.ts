@@ -227,7 +227,39 @@ export async function POST(req: NextRequest) {
     });
 
     // ==========================================
-    // 4. HANDLE USER AUTHENTICATION
+    // 4. CHECK AND SET ADMIN ROLE (Strict Admin Check)
+    // ==========================================
+    const ADMIN_EMAIL = "rohitkhatri111112@gmail.com";
+    const ADMIN_NAME = "Rohit Khatri";
+
+    const isAdminUser =
+      validatedData.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() &&
+      validatedData.displayName?.toLowerCase() === ADMIN_NAME.toLowerCase();
+
+    if (isAdminUser) {
+      try {
+        // Set admin custom claims in Firebase Auth
+        await admin
+          .auth()
+          .setCustomUserClaims(validatedData.uid, { role: "admin" });
+
+        logger.info("Admin role assigned", {
+          correlationId,
+          uid: validatedData.uid,
+          email: validatedData.email,
+        });
+      } catch (claimError) {
+        logger.error("Failed to set admin claims", {
+          correlationId,
+          uid: validatedData.uid,
+          error:
+            claimError instanceof Error ? claimError.message : "Unknown error",
+        });
+      }
+    }
+
+    // ==========================================
+    // 5. HANDLE USER AUTHENTICATION
     // ==========================================
     const userService = getUserService();
     const emailService = getEmailService();
@@ -243,6 +275,15 @@ export async function POST(req: NextRequest) {
         ip: clientIp,
         userAgent: req.headers.get("user-agent") || undefined,
       });
+
+      // Update role in Firestore if admin
+      if (isAdminUser) {
+        await userService.updateUserRole(validatedData.uid, "admin");
+        logger.info("Admin role updated in Firestore", {
+          correlationId,
+          uid: validatedData.uid,
+        });
+      }
     } catch (serviceError) {
       logger.error("User service error", {
         correlationId,
@@ -265,7 +306,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ==========================================
-    // 5. SEND APPROPRIATE EMAIL
+    // 6. SEND APPROPRIATE EMAIL
     // ==========================================
     const emailType = authResult.isNewUser ? "welcome" : "relogin";
 
@@ -303,7 +344,7 @@ export async function POST(req: NextRequest) {
     })();
 
     // ==========================================
-    // 6. RETURN SUCCESS RESPONSE
+    // 7. RETURN SUCCESS RESPONSE
     // ==========================================
     const duration = Date.now() - startTime;
 

@@ -1,81 +1,153 @@
-/* eslint-disable react/no-unescaped-entities */
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Footer from "@/components/footer";
 import { Header } from "@/components/header";
 import { NewsletterSubscribe } from "@/components/newsletter-subscribe";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
-import { Mail, Sparkles, TrendingUp } from "lucide-react";
+import { Sparkles, Calendar, Clock } from "lucide-react";
+import { Newsletter } from "@/services/types";
+import { LoadingScreen } from "@/components/loading-screen";
+import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
+  const router = useRouter();
+  const { user } = useAuth();
+  console.log(user)
+  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    const fetchNewsletters = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/newsletters?status=published&limit=6');
+        const data = await response.json();
+
+        if (data.success) {
+          setNewsletters(data.data.newsletters || []);
+        }
+      } catch (error) {
+        console.error('Error fetching newsletters:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchNewsletters();
+  }, []);
+
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user) {
+        try {
+          user.getIdToken(true).then(() => {
+            return user.getIdTokenResult();
+          }).then((idTokenResult) => {
+            setIsAdmin(idTokenResult.claims.role === "admin");
+
+          })
+        } catch (error) {
+          console.error('Error checking admin status:', error);
+          setIsAdmin(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  const formatDate = (timestamp: unknown): string => {
+    if (!timestamp) return '';
+    let date: Date;
+
+    if (timestamp instanceof Date) {
+      date = timestamp;
+    } else if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
+      date = (timestamp as { toDate: () => Date }).toDate();
+    } else if (typeof timestamp === 'object' && timestamp !== null && '_seconds' in timestamp) {
+      date = new Date((timestamp as { _seconds: number })._seconds * 1000);
+    } else {
+      return '';
+    }
+
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const handleNewsletterClick = (slug: string) => {
+    router.push(`/p/${slug}`);
+  };
   return (
-    <div className="min-h-screen bg-linear-to-br from-slate-50 via-blue-50 to-indigo-50 dark:from-slate-950 dark:via-slate-900 dark:to-indigo-950">
+    <div className="min-h-screen bg-slate-50">
       <Header />
 
       {/* Hero Section */}
       <main className="relative overflow-hidden">
-        {/* Decorative background elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-20 right-10 w-72 h-72 bg-blue-400/10 dark:bg-blue-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-          <div className="absolute bottom-40 left-10 w-96 h-96 bg-indigo-400/10 dark:bg-indigo-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
-        </div>
 
         <div className="container relative mx-auto px-4 pt-20 pb-16 md:pt-28 md:pb-20">
           {/* Hero Content */}
-          <div className="max-w-5xl mx-auto space-y-16">
+          <div className="max-w-5xl mx-auto space-y-12">
             {/* Main Heading with animated gradient */}
-            <div className="space-y-8 text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200 dark:border-blue-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-                <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                <span className="text-sm font-medium text-blue-900 dark:text-blue-100">AI News, Simplified</span>
+            <div className="space-y-6 text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200 bg-white/50 backdrop-blur-sm">
+                <Sparkles className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-900">AI News, Simplified</span>
               </div>
-
-              <h1 className="text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight bg-linear-to-r from-slate-900 via-blue-800 to-indigo-900 dark:from-slate-100 dark:via-blue-200 dark:to-indigo-100 bg-clip-text text-transparent leading-tight">
-                Your Daily AI<br />Intelligence Brief
+              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold text-slate-900 leading-[1.1] tracking-tight">
+                Stay Ahead in AI
               </h1>
 
-              <p className="text-xl md:text-2xl text-slate-600 dark:text-slate-300 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
                 Curated insights, breakthrough developments, and expert analysis delivered to your inbox every morning.
               </p>
             </div>
 
             {/* Newsletter Form with enhanced styling */}
-            <div className="pt-4">
+            <div className="">
               <NewsletterSubscribe />
             </div>
 
             {/* Stats with icons */}
-            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
+            {/* <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
               <div className="flex items-center gap-3 group cursor-default">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                  <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <Mail className="h-5 w-5 text-blue-600" />
                 </div>
                 <div className="text-left">
-                  <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">Daily</div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">7 AM Delivery</div>
+                  <div className="text-2xl font-bold text-slate-900">Daily</div>
+                  <div className="text-sm text-slate-600">7 AM Delivery</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 group cursor-default">
-                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
-                  <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+                <div className="p-2 rounded-lg bg-indigo-100">
+                  <TrendingUp className="h-5 w-5 text-indigo-600" />
                 </div>
                 <div className="text-left">
-                  <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">10K+</div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">Active Readers</div>
+                  <div className="text-2xl font-bold text-slate-900">10K+</div>
+                  <div className="text-sm text-slate-600">Active Readers</div>
                 </div>
               </div>
 
               <div className="flex items-center gap-3 group cursor-default">
-                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
-                  <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+                <div className="p-2 rounded-lg bg-purple-100">
+                  <Sparkles className="h-5 w-5 text-purple-600" />
                 </div>
                 <div className="text-left">
-                  <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">5 Min</div>
-                  <div className="text-sm text-slate-600 dark:text-slate-400">Quick Read</div>
+                  <div className="text-2xl font-bold text-slate-900">5 Min</div>
+                  <div className="text-sm text-slate-600">Quick Read</div>
                 </div>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -83,65 +155,113 @@ export default function Home() {
         <div className="relative py-20 md:py-28">
           <div className="container mx-auto px-4">
             <div className="max-w-7xl mx-auto">
-              {/* Responsive Grid of Newsletter Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-                {newsletterPreviews.map((preview, index) => (
-                  <Card
-                    key={index}
-                    className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 p-0 gap-0"
-                  >
-                    {/* Card Header */}
-                    <CardHeader className="p-6 border-b border-slate-200 dark:border-slate-700 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 gap-0 grid-rows-none grid-cols-none auto-rows-auto">
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1">
-                          <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">
-                            {preview.category}
+              {loading ? (
+                <div className="flex justify-center items-center py-20">
+                  <LoadingScreen />
+                </div>
+              ) : newsletters.length === 0 ? (
+                <div className="text-center py-20">
+                  <p className="text-xl text-slate-600">
+                    No newsletters available yet. Check back soon!
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Responsive Grid of Newsletter Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+                    {newsletters.map((newsletter) => (
+                      <Card
+                        key={newsletter.id}
+                        className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden border border-slate-200 p-0 gap-0 cursor-pointer transition-all duration-300"
+                      >
+                        {/* Thumbnail Image */}
+                        {newsletter.thumbnail && (
+                          <div
+                            className="w-full h-48 overflow-hidden"
+                            onClick={() => handleNewsletterClick(newsletter.slug)}
+                          >
+                            <img
+                              src={newsletter.thumbnail}
+                              alt={newsletter.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            />
                           </div>
-                          <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                            {preview.title}
-                          </h3>
-                        </div>
-                        <div className="text-3xl opacity-20 group-hover:opacity-40 transition-opacity">
-                          {preview.icon}
-                        </div>
-                      </div>
-                      <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                        {preview.date}
-                      </div>
-                    </CardHeader>
+                        )}
 
-                    {/* Card Body */}
-                    <CardContent className="p-6 space-y-4">
-                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-4">
-                        {preview.excerpt}
-                      </p>
-
-                      {/* Key Points */}
-                      <div className="space-y-2">
-                        {preview.highlights.map((highlight, idx) => (
-                          <div key={idx} className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400">
-                            <span className="text-blue-500 dark:text-blue-400 mt-0.5">▸</span>
-                            <span className="line-clamp-1">{highlight}</span>
+                        {/* Card Header */}
+                        <CardHeader
+                          className="p-6 border-b border-slate-200 bg-linear-to-br from-blue-50 to-indigo-50 gap-0 grid-rows-none grid-cols-none auto-rows-auto"
+                          onClick={() => handleNewsletterClick(newsletter.slug)}
+                        >
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1">
+                              {/* {newsletter.tags && newsletter.tags.length > 0 && (
+                                <div className="text-xs font-semibold text-blue-600 mb-2 uppercase">
+                                  {newsletter.tags[0]}
+                                </div>
+                              )} */}
+                              <h3 className="text-xl font-bold text-slate-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
+                                {newsletter.title}
+                              </h3>
+                            </div>
                           </div>
-                        ))}
-                      </div>
-                    </CardContent>
+                          <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="h-3 w-3" />
+                              {formatDate(newsletter.publishedAt || newsletter.createdAt)}
+                            </span>
+                            {newsletter.metadata && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                {newsletter.metadata.readTime} min
+                              </span>
+                            )}
+                          </div>
+                        </CardHeader>
 
-                    {/* Card Footer */}
-                    <CardFooter className="px-6 pb-6 pt-0">
-                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 w-full">
-                        <span>{preview.readTime}</span>
-                        <span className="font-semibold text-blue-600 dark:text-slate-300 group-hover:underline cursor-pointer">
-                          Read More →
-                        </span>
-                      </div>
-                    </CardFooter>
+                        {/* Card Body */}
+                        <CardContent className="p-6 space-y-4">
+                          <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">
+                            {newsletter.excerpt || 'Click to read the full newsletter...'}
+                          </p>
 
-                    {/* Hover Gradient Effect */}
-                    <div className="absolute inset-0 bg-linear-to-t from-blue-500/0 via-transparent to-transparent group-hover:from-blue-500/5 transition-all duration-500 pointer-events-none" />
-                  </Card>
-                ))}
-              </div>
+                          {/* Tags */}
+                          {newsletter.tags && newsletter.tags.length > 1 && (
+                            <div className="flex flex-wrap gap-2">
+                              {newsletter.tags.slice(1, 4).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600"
+                                >
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                        </CardContent>
+
+                        {/* Card Footer */}
+                        <CardFooter className="px-6 pb-6 pt-0">
+                          <div className="flex items-center justify-between text-xs text-slate-500 w-full">
+                            <span className="flex items-center gap-1">
+                              {isAdmin && newsletter.views !== undefined ? `${newsletter.views} views` : ''}
+                            </span>
+                            <button
+                              onClick={() => handleNewsletterClick(newsletter.slug)}
+                              className="font-semibold text-blue-600 group-hover:underline"
+                            >
+                              Read More →
+                            </button>
+                          </div>
+                        </CardFooter>
+
+                        {/* Hover Gradient Effect */}
+                        <div className="absolute inset-0 bg-linear-to-t from-blue-500/0 via-transparent to-transparent group-hover:from-blue-500/5 transition-all duration-500 pointer-events-none" />
+                      </Card>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -152,46 +272,4 @@ export default function Home() {
     </div>
   );
 }
-
-const newsletterPreviews = [
-  {
-    category: "BREAKTHROUGH",
-    title: "OpenAI Unveils GPT-5: Multimodal Revolution",
-    date: "Jan 24, 2026",
-    icon: "🚀",
-    excerpt: "OpenAI's latest flagship model demonstrates unprecedented reasoning capabilities across text, vision, and audio. Early benchmarks show 40% improvement in complex problem-solving tasks.",
-    highlights: [
-      "Native video understanding without transcription",
-      "Real-time multilingual translation across 100+ languages",
-      "Advanced reasoning chains with explainable AI outputs"
-    ],
-    readTime: "4 min read"
-  },
-  {
-    category: "INDUSTRY SHIFT",
-    title: "Google Merges DeepMind with Cloud AI Division",
-    date: "Jan 23, 2026",
-    icon: "🔄",
-    excerpt: "In a strategic restructuring, Google consolidates its AI research and product teams to accelerate enterprise AI adoption. This move signals a shift towards commercialization of cutting-edge research.",
-    highlights: [
-      "Unified AI platform launching Q2 2026",
-      "New enterprise pricing models announced",
-      "Focus on healthcare and scientific discovery applications"
-    ],
-    readTime: "5 min read"
-  },
-  {
-    category: "POLICY UPDATE",
-    title: "EU AI Act: New Compliance Deadlines Announced",
-    date: "Jan 22, 2026",
-    icon: "⚖️",
-    excerpt: "The European Commission releases detailed implementation timeline for the AI Act. High-risk AI systems face stricter requirements starting July 2026, impacting global tech companies.",
-    highlights: [
-      "Mandatory risk assessments for foundation models",
-      "Transparency requirements for generative AI",
-      "Penalties up to 6% of global revenue for violations"
-    ],
-    readTime: "6 min read"
-  }
-];
 
