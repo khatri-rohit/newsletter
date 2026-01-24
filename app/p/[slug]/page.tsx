@@ -226,7 +226,7 @@ export default function NewsletterPage() {
 
                         {/* Main Content */}
                         <div
-                            className="prose prose-lg max-w-none prose-headings:font-bold prose-headings:text-slate-900 prose-p:text-gray-700 prose-a:text-blue-600 prose-strong:text-slate-900 prose-img:rounded-lg prose-img:shadow-lg"
+                            className="newsletter-content"
                             dangerouslySetInnerHTML={{ __html: newsletter.content }}
                         />
 

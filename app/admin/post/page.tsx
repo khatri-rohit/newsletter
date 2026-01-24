@@ -470,7 +470,7 @@ function AdminPostContent() {
 
                             {/* Content */}
                             <div
-                                className="prose prose-lg max-w-none"
+                                className="newsletter-content"
                                 dangerouslySetInnerHTML={{ __html: formData.content }}
                             />
 
