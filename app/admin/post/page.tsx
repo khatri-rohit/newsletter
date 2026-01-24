@@ -1,9 +1,10 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { notFound, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import { ToastProvider, useToast } from '@/components/ui/toast';
+import { toast } from 'sonner';
 import { Header } from '@/components/header';
 import Footer from '@/components/footer';
 import { LoadingScreen } from '@/components/loading-screen';
@@ -37,15 +38,13 @@ interface NewsletterFormData {
 }
 
 function AdminPostContent() {
-    const { user, loading } = useAuth();
+    const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
-    const { toast } = useToast();
     const [saving, setSaving] = useState(false);
     const [publishing, setPublishing] = useState(false);
     const [currentTab, setCurrentTab] = useState('edit');
     const [thumbnailUploading, setThumbnailUploading] = useState(false);
     const [tagInput, setTagInput] = useState('');
-    const [isAdmin, setIsAdmin] = useState(false);
 
     const [formData, setFormData] = useState<NewsletterFormData>({
         title: '',
@@ -55,16 +54,15 @@ function AdminPostContent() {
         tags: [],
         status: 'draft',
     });
-
+    console.log(isAdmin)
+    console.log(user)
     // Check if user is admin
     useEffect(() => {
         if (!loading && !user) {
             router.push('/');
-            toast({
-                title: 'Unauthorized',
-                description: 'Please sign in to access this page',
-                variant: 'error',
-            });
+            // toast.error('Please sign in to access this page', {
+            //     description: 'Unauthorized access',
+            // });
             return;
         }
 
@@ -78,7 +76,6 @@ function AdminPostContent() {
                 console.log('Role Claim:', idTokenResult.claims.role);
 
                 if (idTokenResult.claims.role === 'admin') {
-                    setIsAdmin(true);
                     // router.push('/');
                     // toast({
                     //     title: 'Access Denied',
@@ -88,11 +85,7 @@ function AdminPostContent() {
                 }
             }).catch((error) => {
                 console.error('Error checking admin status:', error);
-                toast({
-                    title: 'Error',
-                    description: 'Failed to verify admin status',
-                    variant: 'error',
-                });
+                toast.error('Failed to verify admin status');
             });
         }
     }, [user, loading, router, toast]);
@@ -119,20 +112,12 @@ function AdminPostContent() {
 
             if (data.success) {
                 setFormData((prev) => ({ ...prev, thumbnail: data.data.url }));
-                toast({
-                    title: 'Success',
-                    description: 'Thumbnail uploaded successfully',
-                    variant: 'success',
-                });
+                toast.success('Thumbnail uploaded successfully');
             } else {
                 throw new Error(data.error || 'Upload failed');
             }
         } catch (error) {
-            toast({
-                title: 'Error',
-                description: error instanceof Error ? error.message : 'Failed to upload thumbnail',
-                variant: 'error',
-            });
+            toast.error(error instanceof Error ? error.message : 'Failed to upload thumbnail');
         } finally {
             setThumbnailUploading(false);
         }
@@ -157,11 +142,7 @@ function AdminPostContent() {
 
     const handleSaveDraft = async () => {
         if (!formData.title || !formData.content) {
-            toast({
-                title: 'Validation Error',
-                description: 'Title and content are required',
-                variant: 'error',
-            });
+            toast.error('Title and content are required');
             return;
         }
 
@@ -187,20 +168,12 @@ function AdminPostContent() {
             const data = await response.json();
 
             if (data.success) {
-                toast({
-                    title: 'Success',
-                    description: 'Draft saved successfully',
-                    variant: 'success',
-                });
+                toast.success('Draft saved successfully');
             } else {
                 throw new Error(data.error || 'Failed to save draft');
             }
         } catch (error) {
-            toast({
-                title: 'Error',
-                description: error instanceof Error ? error.message : 'Failed to save draft',
-                variant: 'error',
-            });
+            toast.error(error instanceof Error ? error.message : 'Failed to save draft');
         } finally {
             setSaving(false);
         }
@@ -208,11 +181,7 @@ function AdminPostContent() {
 
     const handlePublish = async () => {
         if (!formData.title || !formData.content || !formData.excerpt) {
-            toast({
-                title: 'Validation Error',
-                description: 'Title, content, and excerpt are required for publishing',
-                variant: 'error',
-            });
+            toast.error('Title, content, and excerpt are required for publishing');
             return;
         }
 
@@ -238,11 +207,7 @@ function AdminPostContent() {
             const data = await response.json();
 
             if (data.success) {
-                toast({
-                    title: 'Success',
-                    description: 'Newsletter published successfully! 🎉',
-                    variant: 'success',
-                });
+                toast.success('Newsletter published successfully! 🎉');
 
                 // Reset form
                 setFormData({
@@ -257,11 +222,7 @@ function AdminPostContent() {
                 throw new Error(data.error || 'Failed to publish');
             }
         } catch (error) {
-            toast({
-                title: 'Error',
-                description: error instanceof Error ? error.message : 'Failed to publish newsletter',
-                variant: 'error',
-            });
+            toast.error(error instanceof Error ? error.message : 'Failed to publish newsletter');
         } finally {
             setPublishing(false);
         }
@@ -271,8 +232,8 @@ function AdminPostContent() {
         return <LoadingScreen />;
     }
 
-    if (!isAdmin) {
-        return notFound();
+    if (!user || !isAdmin) {
+        return null;
     }
 
     return (
@@ -530,8 +491,6 @@ function AdminPostContent() {
 
 export default function AdminPostPage() {
     return (
-        <ToastProvider>
-            <AdminPostContent />
-        </ToastProvider>
+        <AdminPostContent />
     );
 }

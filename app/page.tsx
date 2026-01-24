@@ -14,11 +14,9 @@ import { useAuth } from "@/lib/auth-context";
 
 export default function Home() {
   const router = useRouter();
-  const { user } = useAuth();
-  console.log(user)
+  const { isAdmin } = useAuth();
   const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const fetchNewsletters = async () => {
@@ -39,28 +37,6 @@ export default function Home() {
 
     fetchNewsletters();
   }, []);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (user) {
-        try {
-          user.getIdToken(true).then(() => {
-            return user.getIdTokenResult();
-          }).then((idTokenResult) => {
-            setIsAdmin(idTokenResult.claims.role === "admin");
-
-          })
-        } catch (error) {
-          console.error('Error checking admin status:', error);
-          setIsAdmin(false);
-        }
-      } else {
-        setIsAdmin(false);
-      }
-    };
-
-    checkAdminStatus();
-  }, [user]);
 
   const formatDate = (timestamp: unknown): string => {
     if (!timestamp) return '';

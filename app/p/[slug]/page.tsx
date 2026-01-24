@@ -19,11 +19,13 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
+import { useAuth } from '@/lib/auth-context';
 
 export default function NewsletterPage() {
     const params = useParams();
     const router = useRouter();
     const slug = params.slug as string;
+    const { isAdmin } = useAuth();
 
     const [newsletter, setNewsletter] = useState<Newsletter | null>(null);
     const [loading, setLoading] = useState(true);
@@ -232,12 +234,14 @@ export default function NewsletterPage() {
 
                         {/* Share Section */}
                         <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                                <Eye className="h-5 w-5 text-gray-400" />
-                                <span className="text-gray-600">
-                                    {(newsletter.views || 0).toLocaleString()} views
-                                </span>
-                            </div>
+                            {isAdmin && newsletter.views !== undefined && (
+                                <div className="flex items-center gap-2">
+                                    <Eye className="h-5 w-5 text-gray-400" />
+                                    <span className="text-gray-600">
+                                        {(newsletter.views || 0).toLocaleString()} views
+                                    </span>
+                                </div>
+                            )}
                             <Button onClick={handleShare} variant="outline">
                                 <Share2 className="h-4 w-4 mr-2" />
                                 Share

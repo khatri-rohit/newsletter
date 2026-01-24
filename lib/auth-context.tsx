@@ -17,6 +17,7 @@ interface AuthContextType {
     signInWithGoogle: () => Promise<void>;
     signInWithGithub: () => Promise<void>;
     signOut: () => Promise<void>;
+    isAdmin: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -25,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
     signInWithGoogle: async () => { },
     signInWithGithub: async () => { },
     signOut: async () => { },
+    isAdmin: false,
 });
 
 export const useAuth = () => {
@@ -74,6 +76,7 @@ async function notifyAuthWebhook(user: User, provider: string) {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -83,6 +86,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         return unsubscribe;
     }, []);
+
+    useEffect(() => {
+        if (user) {
+            user.getIdToken(true).then(() => {
+                return user.getIdTokenResult();
+            }).then((idTokenResult) => {
+                setIsAdmin(idTokenResult.claims.role === "admin");
+
+            })
+        }
+    }, [user]);
 
     const signInWithGoogle = async () => {
         try {
@@ -125,6 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         signInWithGoogle,
         signInWithGithub,
         signOut,
+        isAdmin,
     };
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
