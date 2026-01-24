@@ -43,7 +43,7 @@ async function notifyAuthWebhook(user: User, provider: string) {
     try {
         const idToken = await user.getIdToken();
 
-        const response = await fetch('/api/(auth)/webhook', {
+        const response = await fetch('/api/webhook', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

@@ -1,8 +1,10 @@
 /* eslint-disable react/no-unescaped-entities */
 'use client';
 
+import Footer from "@/components/footer";
 import { Header } from "@/components/header";
 import { NewsletterSubscribe } from "@/components/newsletter-subscribe";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Mail, Sparkles, TrendingUp } from "lucide-react";
 
 export default function Home() {
@@ -22,7 +24,7 @@ export default function Home() {
           {/* Hero Content */}
           <div className="max-w-5xl mx-auto space-y-16">
             {/* Main Heading with animated gradient */}
-            <div className="space-y-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            <div className="space-y-8 text-center">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200 dark:border-blue-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
                 <Sparkles className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                 <span className="text-sm font-medium text-blue-900 dark:text-blue-100">AI News, Simplified</span>
@@ -38,14 +40,14 @@ export default function Home() {
             </div>
 
             {/* Newsletter Form with enhanced styling */}
-            <div className="pt-4 animate-in fade-in slide-in-from-bottom-4 duration-1000" style={{ animationDelay: '200ms' }}>
+            <div className="pt-4">
               <NewsletterSubscribe />
             </div>
 
             {/* Stats with icons */}
-            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12 animate-in fade-in slide-in-from-bottom-4 duration-1000" style={{ animationDelay: '400ms' }}>
+            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
               <div className="flex items-center gap-3 group cursor-default">
-                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30 group-hover:scale-110 transition-transform">
+                <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
                   <Mail className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                 </div>
                 <div className="text-left">
@@ -55,7 +57,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-3 group cursor-default">
-                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 group-hover:scale-110 transition-transform">
+                <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
                   <TrendingUp className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
                 </div>
                 <div className="text-left">
@@ -65,7 +67,7 @@ export default function Home() {
               </div>
 
               <div className="flex items-center gap-3 group cursor-default">
-                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30 group-hover:scale-110 transition-transform">
+                <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-900/30">
                   <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
                 </div>
                 <div className="text-left">
@@ -80,26 +82,16 @@ export default function Home() {
         {/* Newsletter Preview Cards Section */}
         <div className="relative py-20 md:py-28">
           <div className="container mx-auto px-4">
-            <div className="max-w-7xl mx-auto space-y-12">
-              <div className="text-center space-y-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-                <h2 className="text-4xl md:text-5xl font-bold text-slate-900 dark:text-slate-100">
-                  What You'll Receive
-                </h2>
-                <p className="text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
-                  Professional, well-designed newsletters that make AI news digestible and actionable
-                </p>
-              </div>
-
+            <div className="max-w-7xl mx-auto">
               {/* Responsive Grid of Newsletter Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
                 {newsletterPreviews.map((preview, index) => (
-                  <div
+                  <Card
                     key={index}
-                    className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-500 overflow-hidden border border-slate-200 dark:border-slate-700 hover:-translate-y-2 animate-in fade-in slide-in-from-bottom-4"
-                    style={{ animationDelay: `${600 + index * 150}ms`, animationDuration: '1000ms' }}
+                    className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden border border-slate-200 dark:border-slate-700 p-0 gap-0"
                   >
                     {/* Card Header */}
-                    <div className="p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700">
+                    <CardHeader className="p-6 border-b border-slate-200 dark:border-slate-700 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700 gap-0 grid-rows-none grid-cols-none auto-rows-auto">
                       <div className="flex items-start justify-between mb-3">
                         <div className="flex-1">
                           <div className="text-xs font-semibold text-blue-600 dark:text-blue-400 mb-2">
@@ -116,10 +108,10 @@ export default function Home() {
                       <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
                         {preview.date}
                       </div>
-                    </div>
+                    </CardHeader>
 
                     {/* Card Body */}
-                    <div className="p-6 space-y-4">
+                    <CardContent className="p-6 space-y-4">
                       <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-4">
                         {preview.excerpt}
                       </p>
@@ -133,21 +125,21 @@ export default function Home() {
                           </div>
                         ))}
                       </div>
-                    </div>
+                    </CardContent>
 
                     {/* Card Footer */}
-                    <div className="px-6 pb-6">
-                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                    <CardFooter className="px-6 pb-6 pt-0">
+                      <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 w-full">
                         <span>{preview.readTime}</span>
-                        <span className="font-semibold text-blue-600 dark:text-blue-400 group-hover:underline cursor-pointer">
+                        <span className="font-semibold text-blue-600 dark:text-slate-300 group-hover:underline cursor-pointer">
                           Read More →
                         </span>
                       </div>
-                    </div>
+                    </CardFooter>
 
                     {/* Hover Gradient Effect */}
                     <div className="absolute inset-0 bg-gradient-to-t from-blue-500/0 via-transparent to-transparent group-hover:from-blue-500/5 transition-all duration-500 pointer-events-none" />
-                  </div>
+                  </Card>
                 ))}
               </div>
             </div>
@@ -156,23 +148,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="relative border-t border-slate-200 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-12">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                <Mail className="h-5 w-5 text-white" />
-              </div>
-              <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                AI Intelligence Brief
-              </span>
-            </div>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              © 2026 AI Intelligence Brief. Elevating your AI knowledge.
-            </p>
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
