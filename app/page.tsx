@@ -131,11 +131,7 @@ export default function Home() {
         <div className="relative py-20 md:py-28">
           <div className="container mx-auto px-4">
             <div className="max-w-7xl mx-auto">
-              {loading ? (
-                <div className="flex justify-center items-center py-20">
-                  <LoadingScreen />
-                </div>
-              ) : newsletters.length === 0 ? (
+              {newsletters.length === 0 ? (
                 <div className="text-center py-20">
                   <p className="text-xl text-slate-600">
                     No newsletters available yet. Check back soon!
