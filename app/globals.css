@@ -1,5 +1,5 @@
-@import "tailwindcss";
-@import "tw-animate-css";
+@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -189,17 +189,32 @@
 /* Rich Text Content Rendering - Enterprise Grade Styles */
 .newsletter-content {
   /* Reset and base styles */
-  @apply text-gray-800 leading-relaxed;
-  font-size: 1.125rem;
-  line-height: 1.75;
+  @apply text-gray-800;
   word-wrap: break-word;
   overflow-wrap: break-word;
+
+  /* Responsive typography */
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+@media (min-width: 768px) {
+  .newsletter-content {
+    font-size: 1.125rem;
+    line-height: 1.75;
+  }
 }
 
 /* Paragraph spacing - Critical for readability */
 .newsletter-content p {
-  @apply mb-6;
+  @apply mb-4;
   margin-top: 0;
+}
+
+@media (min-width: 768px) {
+  .newsletter-content p {
+    @apply mb-6;
+  }
 }
 
 .newsletter-content p:last-child {
@@ -213,17 +228,17 @@
 
 /* Headings */
 .newsletter-content h1 {
-  @apply text-4xl md:text-5xl font-bold text-slate-900 mt-12 mb-6 leading-tight;
+  @apply text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mt-8 md:mt-12 mb-4 md:mb-6 leading-tight;
   font-family: var(--font-newsreader, Georgia, serif);
 }
 
 .newsletter-content h2 {
-  @apply text-3xl md:text-4xl font-bold text-slate-900 mt-10 mb-5 leading-tight;
+  @apply text-2xl md:text-3xl lg:text-4xl font-bold text-slate-900 mt-6 md:mt-10 mb-3 md:mb-5 leading-tight;
   font-family: var(--font-newsreader, Georgia, serif);
 }
 
 .newsletter-content h3 {
-  @apply text-2xl md:text-3xl font-bold text-slate-900 mt-8 mb-4 leading-snug;
+  @apply text-xl md:text-2xl lg:text-3xl font-bold text-slate-900 mt-5 md:mt-8 mb-3 md:mb-4 leading-snug;
   font-family: var(--font-newsreader, Georgia, serif);
 }
 
@@ -249,7 +264,7 @@
 /* Lists - Proper bullet points and numbering */
 .newsletter-content ul,
 .newsletter-content ol {
-  @apply mb-6 pl-8;
+  @apply mb-4 md:mb-6 pl-6 md:pl-8;
   margin-top: 0;
 }
 
@@ -264,12 +279,12 @@
 }
 
 .newsletter-content li {
-  @apply mb-3 pl-2;
+  @apply mb-2 md:mb-3 pl-1 md:pl-2;
   display: list-item;
 }
 
 .newsletter-content li > p {
-  @apply mb-3;
+  @apply mb-2 md:mb-3;
 }
 
 .newsletter-content li:last-child {
@@ -329,7 +344,7 @@
 
 /* Blockquotes */
 .newsletter-content blockquote {
-  @apply border-l-4 border-blue-500 pl-6 pr-4 py-4 my-6 bg-blue-50 rounded-r-lg italic text-gray-700;
+  @apply border-l-4 border-blue-500 pl-4 md:pl-6 pr-3 md:pr-4 py-3 md:py-4 my-4 md:my-6 bg-blue-50 rounded-r-lg italic text-gray-700;
 }
 
 .newsletter-content blockquote p {
@@ -359,7 +374,7 @@
 
 /* Images */
 .newsletter-content img {
-  @apply max-w-full h-auto rounded-xl my-8 shadow-lg;
+  @apply max-w-full h-auto rounded-lg md:rounded-xl my-4 md:my-8 shadow-md md:shadow-lg;
   display: block;
   margin-left: auto;
   margin-right: auto;
@@ -384,15 +399,15 @@
 }
 
 /* Text alignment */
-.newsletter-content [style*="text-align: center"] {
+.newsletter-content [style*='text-align: center'] {
   @apply text-center;
 }
 
-.newsletter-content [style*="text-align: right"] {
+.newsletter-content [style*='text-align: right'] {
   @apply text-right;
 }
 
-.newsletter-content [style*="text-align: justify"] {
+.newsletter-content [style*='text-align: justify'] {
   @apply text-justify;
 }
 

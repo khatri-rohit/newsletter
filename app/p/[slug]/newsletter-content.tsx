@@ -127,9 +127,9 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
                     )}
 
                     {/* Content */}
-                    <div className="p-8 md:p-12">
+                    <div className="p-4 sm:p-8 md:p-12">
                         {/* Title */}
-                        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 font-newsreader leading-tight text-slate-900">
+                        <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 font-newsreader leading-tight text-slate-900">
                             {newsletter.title}
                         </h1>
 
@@ -166,14 +166,14 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
 
                         {/* Excerpt */}
                         {newsletter.excerpt && (
-                            <p className="text-xl text-gray-700 italic mb-8 leading-relaxed">
+                            <p className="text-lg sm:text-xl text-gray-700 italic mb-6 sm:mb-8 leading-relaxed">
                                 {newsletter.excerpt}
                             </p>
                         )}
 
                         {/* Main Content */}
                         <div
-                            className="newsletter-content prose prose-lg max-w-none"
+                            className="newsletter-content prose md:prose-lg max-w-none prose-slate prose-headings:font-newsreader prose-headings:font-bold prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline"
                             dangerouslySetInnerHTML={{ __html: newsletter.content }}
                         />
 
