@@ -4,6 +4,7 @@ import { NewsletterService } from '@/services/newsletter.service';
 import { cache, cacheKeys } from '@/lib/cache';
 import { apiLimiter, getClientIdentifier } from '@/lib/rate-limit';
 import { slugSchema } from '@/lib/validation';
+import { Newsletter } from '@/services/types';
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
@@ -63,7 +64,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Check cache first
     const cacheKey = cacheKeys.newsletterBySlug(slug);
-    const cachedNewsletter = cache.get(cacheKey);
+    const cachedNewsletter = cache.get(cacheKey) as Newsletter | undefined;
 
     if (cachedNewsletter) {
       // Still increment views asynchronously
