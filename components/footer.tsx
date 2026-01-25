@@ -1,42 +1,51 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { Twitter, Linkedin } from 'lucide-react';
+import { Linkedin, User } from 'lucide-react';
 import { NewsletterSubscribe } from './newsletter-subscribe';
 import Link from 'next/link';
 
-const Footer = () => {
+const Footer = ({ classname }: { classname?: string }) => {
     return (
-        <footer className="relative border-t border-slate-200 bg-white/50 backdrop-blur-sm">
-            <div className="container mx-auto px-4 py-8">
+        <footer className={`${classname ? classname : 'max-w-7xl'} container mx-auto relative border-t border-slate-200 bg-white/50 backdrop-blur-sm`}>
+            <div className="container mx-auto px-4 py-8 sm:py-12">
                 {/* Top Section */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-12 mb-8">
                     {/* Left - Logo and Tagline */}
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <span className="text-lg font-bold">
+                            <span className="text-lg sm:text-xl font-bold">
                                 Low Noise
                             </span>
                         </div>
-                        <p className="text-sm text-slate-600 leading-relaxed">
+                        <p className="text-sm text-slate-600 leading-relaxed max-w-xs">
                             Need-to-know AI news, minus the fluff—served bite-size, every day.
                         </p>
                     </div>
 
                     {/* Center - Navigation */}
                     <div className="flex flex-col gap-3">
-                        <h3 className="font-semibold text-slate-900">Navigation</h3>
-                        <Link href="/" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">
-                            Home
-                        </Link>
-                        <Link href="/" className="text-sm text-slate-600 hover:text-blue-600 transition-colors">
-                            Posts
-                        </Link>
+                        <h3 className="font-semibold text-slate-900 text-base">Navigation</h3>
+                        <nav className="flex flex-col gap-2" aria-label="Footer navigation">
+                            <Link
+                                href="/"
+                                className="text-sm text-slate-600 hover:text-blue-600 transition-colors w-fit"
+                            >
+                                Home
+                            </Link>
+                            <Link
+                                href="/"
+                                className="text-sm text-slate-600 hover:text-blue-600 transition-colors w-fit"
+                            >
+                                Posts
+                            </Link>
+                        </nav>
                     </div>
 
                     {/* Right - Subscribe */}
-                    <div className="space-y-3 flex flex-col items-start justify-center">
-                        <h3 className="font-semibold text-slate-900">Subscribe</h3>
-                        <div className='-ml-4.5 w-full'>
+                    <div className="space-y-3 sm:col-span-2 lg:col-span-1">
+                        <h3 className="font-semibold text-slate-900 text-base">Subscribe</h3>
+                        <div className="w-full max-w-md">
                             <NewsletterSubscribe />
                         </div>
                     </div>
@@ -44,29 +53,45 @@ const Footer = () => {
 
                 {/* Bottom Section */}
                 <div className="pt-6 border-t border-slate-200">
-                    <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                         {/* Social Icons */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 order-2 sm:order-1">
                             <a
                                 href="https://x.com/rohitxdotdev"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                                aria-label="Follow us on Twitter"
                             >
-                                <Twitter className="h-4 w-4 text-slate-700" />
+                                <img
+                                    src="/x.svg"
+                                    alt="Follow us on Twitter"
+                                    className="mr-1 h-3.5 w-3.5 opacity-80"
+                                    loading="lazy"
+                                />
                             </a>
                             <a
-                                href="www.linkedin.com/in/rohitkhatri302"
+                                href="https://www.linkedin.com/in/rohitkhatri302"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                                aria-label="Connect on LinkedIn"
                             >
                                 <Linkedin className="h-4 w-4 text-slate-700" />
+                            </a>
+                            <a
+                                href="https://thisisrohit.dev"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="h-9 w-9 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center transition-colors"
+                                aria-label="Visit my website"
+                            >
+                                <User className="h-4 w-4 text-slate-700" />
                             </a>
                         </div>
 
                         {/* Copyright */}
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-slate-600 text-center sm:text-left order-1 sm:order-2">
                             © 2026 Low Noise. All rights reserved.
                         </p>
                     </div>
