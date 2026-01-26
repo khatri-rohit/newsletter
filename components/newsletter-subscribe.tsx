@@ -69,19 +69,19 @@ export function NewsletterSubscribe() {
 
     return (
         <div className="w-full max-w-md mx-auto">
-            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
+            <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <Input
                     type="email"
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={loading}
-                    className="flex-1 h-11 font-light"
+                    className="flex-1 h-10 sm:h-11 text-sm sm:text-base font-light"
                 />
                 <Button
                     type="submit"
                     disabled={loading}
-                    className="h-11 px-8 font-light cursor-pointer"
+                    className="h-10 sm:h-11 px-6 sm:px-8 text-sm sm:text-base font-light cursor-pointer w-full sm:w-auto"
                 >
                     {loading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />

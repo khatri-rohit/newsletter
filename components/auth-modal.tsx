@@ -56,12 +56,12 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                         Choose your preferred authentication method
                     </DialogDescription>
                 </DialogHeader>
-                <div className="space-y-3 pt-4">
+                <div className="space-y-2.5 sm:space-y-3 pt-3 sm:pt-4">
                     <Button
                         onClick={handleGoogleSignIn}
                         disabled={loading !== null}
                         variant="outline"
-                        className="w-full h-11 font-light"
+                        className="w-full h-10 sm:h-11 text-sm sm:text-base font-light"
                     >
                         {loading === 'google' ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -74,7 +74,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                         onClick={handleGithubSignIn}
                         disabled={loading !== null}
                         variant="outline"
-                        className="w-full h-11 font-light"
+                        className="w-full h-10 sm:h-11 text-sm sm:text-base font-light"
                     >
                         {loading === 'github' ? (
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -83,7 +83,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
                         )}
                         <span>Continue with GitHub</span>
                     </Button>
-                    <p className="text-xs text-center text-muted-foreground pt-4">
+                    <p className="text-xs text-center text-muted-foreground pt-3 sm:pt-4">
                         By continuing, you agree to our Terms and Privacy Policy
                     </p>
                 </div>

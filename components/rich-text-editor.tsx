@@ -61,7 +61,7 @@ const MenuButton = ({
         disabled={disabled}
         title={title}
         className={`
-      p-2 rounded hover:bg-gray-100 transition-colors
+      p-1.5 sm:p-2 rounded hover:bg-gray-100 active:scale-95 transition-all touch-manipulation min-w-8 sm:min-w-9
       ${active ? 'bg-gray-200' : ''}
       ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
     `}
@@ -130,14 +130,14 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
 
     return (
         <>
-            <div className="border-b border-gray-200 p-2 flex flex-wrap gap-1">
+            <div className="border-b border-gray-200 p-1.5 sm:p-2 flex flex-wrap gap-0.5 sm:gap-1 overflow-x-auto scrollbar-thin">
                 {/* Text formatting */}
                 <MenuButton
                     onClick={() => editor.chain().focus().toggleBold().run()}
                     active={editor.isActive('bold')}
                     title="Bold"
                 >
-                    <Bold className="h-4 w-4" />
+                    <Bold className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </MenuButton>
                 <MenuButton
                     onClick={() => editor.chain().focus().toggleItalic().run()}
@@ -383,7 +383,9 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
     return (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
             <Toolbar editor={editor} />
-            <EditorContent editor={editor} />
+            <div className="overflow-y-auto max-h-[60vh] sm:max-h-[70vh]">
+                <EditorContent editor={editor} />
+            </div>
         </div>
     );
 }

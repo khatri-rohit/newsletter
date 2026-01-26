@@ -240,38 +240,40 @@ function AdminPostContent() {
         <div className="min-h-screen flex flex-col">
             <Header />
 
-            <main className="flex-1 container mx-auto px-4 py-8 pt-20 max-w-7xl">
+            <main className="flex-1 container mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-16 sm:pt-20 max-w-7xl">
                 {/* Header */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold mb-2">Create Newsletter</h1>
-                    <p className="text-gray-600">
+                <div className="mb-6 sm:mb-8">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Create Newsletter</h1>
+                    <p className="text-sm sm:text-base text-gray-600">
                         Craft your next newsletter with our powerful editor
                     </p>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3 mb-6">
+                <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
                     <Button
                         onClick={handleSaveDraft}
                         disabled={saving || publishing}
                         variant="outline"
+                        className="text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
                     >
-                        <Save className="h-4 w-4 mr-2" />
+                        <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         {saving ? 'Saving...' : 'Save Draft'}
                     </Button>
                     <Button
                         onClick={() => setCurrentTab('preview')}
                         variant="outline"
+                        className="text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
                     >
-                        <Eye className="h-4 w-4 mr-2" />
+                        <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         Preview
                     </Button>
                     <Button
                         onClick={handlePublish}
                         disabled={saving || publishing}
-                        className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700"
+                        className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
                     >
-                        <Send className="h-4 w-4 mr-2" />
+                        <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         {publishing ? 'Publishing...' : 'Publish'}
                     </Button>
                 </div>
@@ -335,7 +337,7 @@ function AdminPostContent() {
 
                         {/* Title */}
                         <div className="space-y-2">
-                            <Label htmlFor="title">Newsletter Title *</Label>
+                            <Label htmlFor="title" className="text-sm sm:text-base">Newsletter Title *</Label>
                             <Input
                                 id="title"
                                 placeholder="Enter a catchy title for your newsletter..."
@@ -343,13 +345,13 @@ function AdminPostContent() {
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, title: e.target.value }))
                                 }
-                                className="text-2xl font-bold"
+                                className="text-lg sm:text-xl md:text-2xl font-bold"
                             />
                         </div>
 
                         {/* Excerpt */}
                         <div className="space-y-2">
-                            <Label htmlFor="excerpt">Excerpt / Summary *</Label>
+                            <Label htmlFor="excerpt" className="text-sm sm:text-base">Excerpt / Summary *</Label>
                             <Textarea
                                 id="excerpt"
                                 placeholder="Write a brief summary that will appear in previews..."
@@ -358,8 +360,9 @@ function AdminPostContent() {
                                     setFormData((prev) => ({ ...prev, excerpt: e.target.value }))
                                 }
                                 rows={3}
+                                className="text-sm sm:text-base"
                             />
-                            <p className="text-sm text-gray-500">
+                            <p className="text-xs sm:text-sm text-gray-500">
                                 {formData.excerpt.length} characters
                             </p>
                         </div>

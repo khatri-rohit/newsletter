@@ -69,26 +69,26 @@ export default function Home() {
       {/* Hero Section */}
       <main className="relative overflow-hidden">
 
-        <div className="container relative mx-auto px-4 pt-20 pb-16 md:pt-28 md:pb-20">
+        <div className="container relative mx-auto px-3 sm:px-4 pt-16 pb-12 sm:pt-20 sm:pb-16 md:pt-28 md:pb-20">
           {/* Hero Content */}
-          <div className="max-w-5xl mx-auto space-y-12">
+          <div className="max-w-5xl mx-auto space-y-8 sm:space-y-10 md:space-y-12">
             {/* Main Heading with animated gradient */}
-            <div className="space-y-6 text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-blue-200 bg-white/50 backdrop-blur-sm">
-                <Sparkles className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-900">AI News, Simplified</span>
+            <div className="space-y-4 sm:space-y-5 md:space-y-6 text-center">
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full border border-blue-200 bg-white/50 backdrop-blur-sm">
+                <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-blue-600" />
+                <span className="text-xs sm:text-sm font-medium text-blue-900">AI News, Simplified</span>
               </div>
-              <h1 className="text-4xl md:text-5xl lg:text-7xl font-bold text-slate-900 leading-[1.1] tracking-tight">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-slate-900 leading-[1.1] tracking-tight px-2">
                 Stay Ahead in AI
               </h1>
 
-              <p className="text-xl md:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-600 max-w-3xl mx-auto leading-relaxed px-4">
                 Curated insights, breakthrough developments, and expert analysis delivered to your inbox every morning.
               </p>
             </div>
 
             {/* Newsletter Form with enhanced styling */}
-            <div className="">
+            <div className="px-2 sm:px-0">
               <NewsletterSubscribe />
             </div>
 
@@ -144,47 +144,42 @@ export default function Home() {
                     {newsletters.map((newsletter) => (
                       <Card
                         key={newsletter.id}
-                        className="group relative bg-white rounded-2xl shadow-lg hover:shadow-2xl overflow-hidden border border-slate-200 p-0 gap-0 cursor-pointer transition-all duration-300"
+                        className="group relative bg-white rounded-xl sm:rounded-2xl shadow-md hover:shadow-2xl overflow-hidden border border-slate-200 p-0 gap-0 cursor-pointer transition-all duration-300"
                       >
                         {/* Thumbnail Image */}
                         {newsletter.thumbnail && (
                           <div
-                            className="w-full h-48 overflow-hidden"
+                            className="w-full h-44 sm:h-48 md:h-52 overflow-hidden"
                             onClick={() => handleNewsletterClick(newsletter.slug)}
                           >
                             <img
                               src={newsletter.thumbnail}
                               alt={newsletter.title}
-                              className="w-full h-full object-cover object-top transition-transform duration-500"
+                              className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
                             />
                           </div>
                         )}
 
                         {/* Card Header */}
                         <CardHeader
-                          className="p-6 border-b border-slate-200 bg-linear-to-br from-blue-50 to-indigo-50 gap-0 grid-rows-none grid-cols-none auto-rows-auto"
+                          className="p-4 sm:p-5 md:p-6 border-b border-slate-200 bg-linear-to-br from-blue-50 to-indigo-50 gap-0 grid-rows-none grid-cols-none auto-rows-auto"
                           onClick={() => handleNewsletterClick(newsletter.slug)}
                         >
-                          <div className="flex items-start justify-between mb-3">
-                            <div className="flex-1">
-                              {/* {newsletter.tags && newsletter.tags.length > 0 && (
-                                <div className="text-xs font-semibold text-blue-600 mb-2 uppercase">
-                                  {newsletter.tags[0]}
-                                </div>
-                              )} */}
-                              <h3 className="text-xl font-bold text-slate-900 line-clamp-2 transition-colors">
+                          <div className="flex items-start justify-between mb-2 sm:mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-base sm:text-lg md:text-xl font-bold text-slate-900 line-clamp-2 transition-colors">
                                 {newsletter.title}
                               </h3>
                             </div>
                           </div>
-                          <div className="flex items-center gap-3 text-xs text-slate-500 font-medium">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="h-3 w-3" />
-                              {formatDate(newsletter.publishedAt || newsletter.createdAt)}
+                          <div className="flex items-center gap-2 sm:gap-3 text-xs text-slate-500 font-medium flex-wrap">
+                            <span className="flex items-center gap-1 whitespace-nowrap">
+                              <Calendar className="h-3 w-3 flex-shrink-0" />
+                              <span className="truncate">{formatDate(newsletter.publishedAt || newsletter.createdAt)}</span>
                             </span>
                             {newsletter.metadata && (
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
+                              <span className="flex items-center gap-1 whitespace-nowrap">
+                                <Clock className="h-3 w-3 flex-shrink-0" />
                                 {newsletter.metadata.readTime} min
                               </span>
                             )}
@@ -192,8 +187,8 @@ export default function Home() {
                         </CardHeader>
 
                         {/* Card Body */}
-                        <CardContent className="p-6 space-y-4">
-                          <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">
+                        <CardContent className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4">
+                          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed line-clamp-3 sm:line-clamp-4">
                             {newsletter.excerpt || 'Click to read the full newsletter...'}
                           </p>
 
@@ -213,14 +208,14 @@ export default function Home() {
                         </CardContent>
 
                         {/* Card Footer */}
-                        <CardFooter className="px-6 pb-6 pt-0">
-                          <div className="flex items-center justify-between text-xs text-slate-500 w-full">
-                            <span className="flex items-center gap-1">
+                        <CardFooter className="px-4 sm:px-5 md:px-6 pb-4 sm:pb-5 md:pb-6 pt-0">
+                          <div className="flex items-center justify-between text-xs text-slate-500 w-full gap-2">
+                            <span className="flex items-center gap-1 truncate">
                               {isAdmin && newsletter.views !== undefined ? `${newsletter.views} views` : ''}
                             </span>
                             <button
                               onClick={() => handleNewsletterClick(newsletter.slug)}
-                              className="font-semibold text-gray-600 group-hover:underline"
+                              className="font-semibold text-gray-600 group-hover:underline whitespace-nowrap flex-shrink-0"
                             >
                               Read More →
                             </button>

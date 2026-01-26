@@ -200,26 +200,26 @@ export function UserMenu() {
 
             {/* Profile Dialog */}
             <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="max-w-2xl max-h-[85vh] sm:max-h-[90vh] overflow-y-auto w-[95vw] sm:w-full">
                     <DialogHeader>
-                        <DialogTitle className="flex items-center gap-3 text-2xl">
-                            <Avatar className="h-16 w-16">
+                        <DialogTitle className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 text-xl sm:text-2xl">
+                            <Avatar className="h-12 w-12 sm:h-16 sm:w-16">
                                 <AvatarImage src={user.photoURL || undefined} alt={user.displayName || 'User'} />
-                                <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-600 text-white text-xl">
+                                <AvatarFallback className="bg-linear-to-br from-blue-500 to-purple-600 text-white text-base sm:text-xl">
                                     {getInitials(user.displayName)}
                                 </AvatarFallback>
                             </Avatar>
-                            <div>
-                                <div className="flex items-center gap-2">
-                                    {user.displayName || 'User'}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="truncate">{user.displayName || 'User'}</span>
                                     {isAdmin && (
-                                        <Badge variant="default" className="bg-linear-to-r from-amber-500 to-orange-600">
+                                        <Badge variant="default" className="bg-linear-to-r from-amber-500 to-orange-600 text-xs sm:text-sm">
                                             <Shield className="h-3 w-3 mr-1" />
                                             Admin
                                         </Badge>
                                     )}
                                 </div>
-                                <DialogDescription className="text-base mt-1">
+                                <DialogDescription className="text-sm sm:text-base mt-1">
                                     Manage your profile and subscription preferences
                                 </DialogDescription>
                             </div>

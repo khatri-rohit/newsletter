@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/breadcrumb"
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
+import ScrollTop from '@/components/scroll-to-top';
 
 interface NewsletterContentProps {
     newsletter: Newsletter;
@@ -74,6 +75,7 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
 
     return (
         <div className="min-h-screen flex flex-col bg-slate-50">
+            <ScrollTop />
             <Header classname="max-w-5xl" />
 
             <main className="px-2 md:px-1 flex-1 container mx-auto py-8 pt-20 max-w-5xl">

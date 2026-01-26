@@ -5,6 +5,7 @@ import { useAuth } from '@/lib/auth-context';
 import { Button } from '@/components/ui/button';
 import { AuthModal } from './auth-modal';
 import { UserMenu } from './user-menu';
+import Link from 'next/link';
 
 export function Header({ classname }: { classname?: string }) {
     const { user } = useAuth();
@@ -12,15 +13,15 @@ export function Header({ classname }: { classname?: string }) {
 
     return (
         <>
-            <header className={`${classname ? classname : 'max-w-7xl'} container mx-auto fixed top-0 left-1/2 w-full z-50  border-slate-200 bg-white/80 backdrop-blur-md -translate-x-1/2`}>
-                <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <span className="text-base font-bold ">
+            <header className={`${classname ? classname : 'max-w-7xl'} container mx-auto fixed top-0 left-1/2 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md -translate-x-1/2 shadow-sm`}>
+                <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                        <Link href="/" className="text-sm sm:text-base md:text-lg font-bold truncate">
                             Low Noise
-                        </span>
+                        </Link>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         {user ? (
                             <UserMenu />
                         ) : (
@@ -28,7 +29,7 @@ export function Header({ classname }: { classname?: string }) {
                                 onClick={() => setAuthModalOpen(true)}
                                 variant="default"
                                 size="sm"
-                                className="py-5 px-5 cursor-pointer"
+                                className="h-9 sm:h-10 px-3 sm:px-5 text-xs sm:text-sm cursor-pointer"
                             >
                                 Login
                             </Button>
