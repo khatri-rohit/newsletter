@@ -136,7 +136,7 @@ export default function Home() {
                     Latest Newsletters
                   </h2>
                   <p className="text-base text-slate-600 max-w-2xl mx-auto">
-                    {allNewsletters?.length || 0} articles • Updated daily
+                    {/* {allNewsletters?.length || 0} articles • Updated Daily */}
                   </p>
                 </div>
 

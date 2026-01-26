@@ -63,7 +63,7 @@ export function NewsletterSubscribe() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={isLoading}
-                    className="flex-1 h-10 sm:h-11 text-sm sm:text-base font-light"
+                    className="flex-1 h-10 sm:h-11 text-sm sm:text-base font-light outline-none!"
                 />
                 <Button
                     type="submit"
