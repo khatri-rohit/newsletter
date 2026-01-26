@@ -12,10 +12,16 @@ export class NewsletterService {
   private newslettersCollection: admin.firestore.CollectionReference;
 
   constructor() {
-    // Ensure Firebase Admin is initialized
-    getFirebaseAdmin();
-    this.db = admin.firestore();
-    this.newslettersCollection = this.db.collection('newsletters');
+    try {
+      // Ensure Firebase Admin is initialized
+      getFirebaseAdmin();
+      this.db = admin.firestore();
+      this.newslettersCollection = this.db.collection('newsletters');
+      console.log('[NewsletterService] Initialized successfully');
+    } catch (error) {
+      console.error('[NewsletterService] Initialization error:', error);
+      throw error;
+    }
   }
 
   /**
@@ -166,20 +172,35 @@ export class NewsletterService {
    */
   async getNewsletterBySlug(slug: string): Promise<Newsletter | null> {
     try {
+      console.log('[NewsletterService] Fetching by slug:', slug);
+
       const snapshot = await this.newslettersCollection.where('slug', '==', slug).limit(1).get();
 
       if (snapshot.empty) {
+        console.log('[NewsletterService] No newsletter found with slug:', slug);
         return null;
       }
 
       const doc = snapshot.docs[0];
+      const data = doc.data();
+
+      console.log('[NewsletterService] Newsletter found:', {
+        id: doc.id,
+        title: data.title,
+        status: data.status,
+      });
+
       return {
         id: doc.id,
-        ...doc.data(),
+        ...data,
       } as Newsletter;
     } catch (error) {
-      console.error('Error getting newsletter by slug:', error);
-      throw new Error('Failed to get newsletter');
+      console.error('[NewsletterService] Error getting newsletter by slug:', {
+        slug,
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw new Error(`Failed to get newsletter with slug: ${slug}`);
     }
   }
 

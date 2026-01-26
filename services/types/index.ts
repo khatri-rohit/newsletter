@@ -13,12 +13,12 @@ export interface ContentMetadata {
     type: string;
     title: string;
     authors: string;
-    "source-name": string;
-    "external-source-urls": string;
-    "image-urls": string;
+    'source-name': string;
+    'external-source-urls': string;
+    'image-urls': string;
     url: string;
     timestamp: string;
-    "feed-url": string;
+    'feed-url': string;
   };
 }
 
@@ -38,8 +38,8 @@ export interface User {
   email: string;
   displayName?: string | null;
   photoURL?: string | null;
-  provider: "google.com" | "github.com" | "password";
-  role: "user" | "admin";
+  provider: 'google.com' | 'github.com' | 'password';
+  role: 'user' | 'admin';
   isSubscribed: boolean;
   createdAt: Date | FirebaseFirestore.Timestamp;
   updatedAt: Date | FirebaseFirestore.Timestamp;
@@ -56,10 +56,10 @@ export interface Subscriber {
   name?: string;
   userId?: string; // Link to users collection if authenticated
   subscribedAt: Date | FirebaseFirestore.Timestamp;
-  status: "active" | "unsubscribed" | "bounced";
-  source: "website" | "auth";
+  status: 'active' | 'unsubscribed' | 'bounced';
+  source: 'website' | 'auth';
   preferences?: {
-    frequency: "daily" | "weekly";
+    frequency: 'daily' | 'weekly';
     categories?: string[];
   };
 }
@@ -130,7 +130,7 @@ export interface AuthWebhookResponse {
   success: boolean;
   data?: {
     isNewUser: boolean;
-    emailType: "welcome" | "relogin";
+    emailType: 'welcome' | 'relogin';
     user: {
       uid: string;
       email: string;
@@ -152,15 +152,15 @@ export interface Newsletter {
   content: string; // Rich HTML content from TipTap editor
   excerpt: string; // Short summary/preview
   thumbnail?: string; // URL to thumbnail image
-  status: "draft" | "published" | "scheduled";
+  status: 'draft' | 'published' | 'scheduled';
   authorId: string;
   authorName: string;
   authorEmail: string;
   tags?: string[];
-  scheduledFor?: Date | FirebaseFirestore.Timestamp;
-  publishedAt?: Date | FirebaseFirestore.Timestamp;
-  createdAt: Date | FirebaseFirestore.Timestamp;
-  updatedAt: Date | FirebaseFirestore.Timestamp;
+  scheduledFor?: Date | FirebaseFirestore.Timestamp | string;
+  publishedAt?: Date | FirebaseFirestore.Timestamp | string;
+  createdAt: Date | FirebaseFirestore.Timestamp | string;
+  updatedAt: Date | FirebaseFirestore.Timestamp | string;
   views?: number;
   metadata?: {
     readTime?: number; // Estimated read time in minutes
@@ -175,7 +175,7 @@ export interface CreateNewsletterInput {
   excerpt: string;
   thumbnail?: string;
   tags?: string[];
-  status?: "draft" | "published" | "scheduled";
+  status?: 'draft' | 'published' | 'scheduled';
   scheduledFor?: Date;
 }
 

@@ -5,16 +5,46 @@ import { notFound } from 'next/navigation';
 import { Newsletter } from '@/services/types';
 import { NewsletterContent } from './newsletter-content';
 import { NewsletterService } from '@/services/newsletter.service';
-import { getFirebaseAdmin } from '@/lib/firebase-admin';
 
-// Ensure Firebase Admin is initialized
-getFirebaseAdmin();
+// Helper function to serialize Firestore Timestamps to plain objects
+function serializeNewsletter(newsletter: Newsletter): Newsletter {
+    const serializeTimestamp = (timestamp: any): string | undefined => {
+        if (!timestamp) return undefined;
+        if (timestamp instanceof Date) return timestamp.toISOString();
+        if (typeof timestamp === 'object' && '_seconds' in timestamp) {
+            return new Date(timestamp._seconds * 1000).toISOString();
+        }
+        if (typeof timestamp === 'object' && 'seconds' in timestamp) {
+            return new Date(timestamp.seconds * 1000).toISOString();
+        }
+        if (typeof timestamp === 'object' && 'toDate' in timestamp) {
+            return timestamp.toDate().toISOString();
+        }
+        return timestamp;
+    };
+
+    return {
+        ...newsletter,
+        createdAt: serializeTimestamp(newsletter.createdAt) as any,
+        updatedAt: serializeTimestamp(newsletter.updatedAt) as any,
+        publishedAt: serializeTimestamp(newsletter.publishedAt) as any,
+        scheduledFor: serializeTimestamp(newsletter.scheduledFor) as any,
+    };
+}
 
 // Server-side data fetching - Direct service call (no HTTP)
 async function getNewsletter(slug: string): Promise<Newsletter | null> {
     try {
+        console.log('[getNewsletter] Fetching newsletter with slug:', slug);
+
         const newsletterService = new NewsletterService();
         const newsletter = await newsletterService.getNewsletterBySlug(slug);
+
+        console.log('[getNewsletter] Newsletter found:', newsletter ? {
+            id: newsletter.id,
+            title: newsletter.title,
+            status: newsletter.status
+        } : 'null');
 
         // Only return published newsletters
         if (newsletter && newsletter.status === 'published') {
@@ -23,8 +53,13 @@ async function getNewsletter(slug: string): Promise<Newsletter | null> {
 
         return null;
     } catch (error) {
-        console.error('Error fetching newsletter:', error);
-        return null;
+        console.error('[getNewsletter] Error fetching newsletter:', {
+            slug,
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined
+        });
+        // Re-throw to trigger error boundary
+        throw error;
     }
 }
 
@@ -34,38 +69,45 @@ export async function generateMetadata({
 }: {
     params: Promise<{ slug: string }>
 }): Promise<Metadata> {
-    const { slug } = await params;
-    const newsletter = await getNewsletter(slug);
+    try {
+        const { slug } = await params;
+        const newsletter = await getNewsletter(slug);
 
-    if (!newsletter) {
+        if (!newsletter) {
+            return {
+                title: 'Newsletter Not Found',
+            };
+        }
+
         return {
-            title: 'Newsletter Not Found',
+            title: `${newsletter.title} | Low Noise`,
+            description: newsletter.excerpt || newsletter.title,
+            openGraph: {
+                title: newsletter.title,
+                description: newsletter.excerpt || newsletter.title,
+                images: newsletter.thumbnail ? [newsletter.thumbnail] : [],
+                type: 'article',
+                publishedTime: newsletter.publishedAt
+                    ? new Date(
+                        typeof newsletter.publishedAt === 'object' && '_seconds' in newsletter.publishedAt
+                            ? (newsletter.publishedAt._seconds as any) * 1000
+                            : newsletter.publishedAt as any
+                    ).toISOString()
+                    : undefined,
+            },
+            twitter: {
+                card: 'summary_large_image',
+                title: newsletter.title,
+                description: newsletter.excerpt || newsletter.title,
+                images: newsletter.thumbnail ? [newsletter.thumbnail] : [],
+            },
+        };
+    } catch (error) {
+        console.error('[generateMetadata] Error:', error);
+        return {
+            title: 'Error Loading Newsletter',
         };
     }
-
-    return {
-        title: `${newsletter.title} | Low Noise`,
-        description: newsletter.excerpt || newsletter.title,
-        openGraph: {
-            title: newsletter.title,
-            description: newsletter.excerpt || newsletter.title,
-            images: newsletter.thumbnail ? [newsletter.thumbnail] : [],
-            type: 'article',
-            publishedTime: newsletter.publishedAt
-                ? new Date(
-                    typeof newsletter.publishedAt === 'object' && '_seconds' in newsletter.publishedAt
-                        ? (newsletter.publishedAt._seconds as any) * 1000
-                        : newsletter.publishedAt as any
-                ).toISOString()
-                : undefined,
-        },
-        twitter: {
-            card: 'summary_large_image',
-            title: newsletter.title,
-            description: newsletter.excerpt || newsletter.title,
-            images: newsletter.thumbnail ? [newsletter.thumbnail] : [],
-        },
-    };
 }
 
 export default async function NewsletterPage({
@@ -73,29 +115,21 @@ export default async function NewsletterPage({
 }: {
     params: Promise<{ slug: string }>
 }) {
-    try {
-        const { slug } = await params;
+    const { slug } = await params;
 
-        console.log('[NewsletterPage] Fetching newsletter with slug:', slug);
+    console.log('[NewsletterPage] Fetching newsletter with slug:', slug);
 
-        const newsletter = await getNewsletter(slug);
+    const newsletter = await getNewsletter(slug);
 
-        if (!newsletter) {
-            console.log('[NewsletterPage] Newsletter not found:', slug);
-            notFound();
-        }
-
-        if (newsletter.status !== 'published') {
-            console.log('[NewsletterPage] Newsletter not published:', slug, newsletter.status);
-            notFound();
-        }
-
-        console.log('[NewsletterPage] Newsletter found:', newsletter.id, newsletter.title);
-
-        // eslint-disable-next-line react-hooks/error-boundaries
-        return <NewsletterContent newsletter={newsletter} />;
-    } catch (error) {
-        console.error('[NewsletterPage] Error rendering newsletter:', error);
-        throw error; // Re-throw to be caught by error boundary
+    if (!newsletter) {
+        console.log('[NewsletterPage] Newsletter not found or not published:', slug);
+        notFound();
     }
+
+    console.log('[NewsletterPage] Newsletter found:', newsletter.id, newsletter.title);
+
+    // Serialize the newsletter data to remove Firestore Timestamp objects
+    const serializedNewsletter = serializeNewsletter(newsletter);
+
+    return <NewsletterContent newsletter={serializedNewsletter} />;
 }

@@ -16,6 +16,7 @@ export function getFirebaseAdmin(): admin.app.App {
     // Check if app already exists
     if (admin.apps.length > 0 && admin.apps[0]) {
       firebaseAdmin = admin.apps[0];
+      console.log('[Firebase Admin] Using existing app instance');
       return firebaseAdmin;
     }
 
@@ -24,11 +25,17 @@ export function getFirebaseAdmin(): admin.app.App {
     const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
     const privateKey = process.env.FIREBASE_PRIVATE_KEY;
 
-    if (!projectId || !clientEmail || !privateKey) {
-      throw new Error(
-        'Missing Firebase Admin credentials. Please check your environment variables.'
-      );
+    if (!projectId) {
+      throw new Error('FIREBASE_PROJECT_ID is not set');
     }
+    if (!clientEmail) {
+      throw new Error('FIREBASE_CLIENT_EMAIL is not set');
+    }
+    if (!privateKey) {
+      throw new Error('FIREBASE_PRIVATE_KEY is not set');
+    }
+
+    console.log('[Firebase Admin] Initializing with project:', projectId);
 
     // Initialize Firebase Admin
     firebaseAdmin = admin.initializeApp({
@@ -39,10 +46,18 @@ export function getFirebaseAdmin(): admin.app.App {
       }),
     });
 
-    console.log('Firebase Admin initialized successfully');
+    console.log('[Firebase Admin] Initialized successfully');
     return firebaseAdmin;
   } catch (error) {
-    console.error('Failed to initialize Firebase Admin:', error);
+    console.error('[Firebase Admin] Initialization failed:', {
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      env: {
+        hasProjectId: !!process.env.FIREBASE_PROJECT_ID,
+        hasClientEmail: !!process.env.FIREBASE_CLIENT_EMAIL,
+        hasPrivateKey: !!process.env.FIREBASE_PRIVATE_KEY,
+      },
+    });
     throw error;
   }
 }

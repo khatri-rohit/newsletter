@@ -58,10 +58,15 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
 
         if (timestamp instanceof Date) {
             date = timestamp;
+        } else if (typeof timestamp === 'string') {
+            // Handle ISO string from serialization
+            date = new Date(timestamp);
         } else if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
             date = (timestamp as { toDate: () => Date }).toDate();
         } else if (typeof timestamp === 'object' && timestamp !== null && '_seconds' in timestamp) {
             date = new Date((timestamp as { _seconds: number })._seconds * 1000);
+        } else if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp) {
+            date = new Date((timestamp as { seconds: number }).seconds * 1000);
         } else {
             return '';
         }
