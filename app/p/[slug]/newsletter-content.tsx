@@ -21,6 +21,7 @@ import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 import ScrollTop from '@/components/scroll-to-top';
 import { formatTimestamp, generateViewerId, formatNumber } from '@/lib/helpers';
+import { generateArticleSchema, generateBreadcrumbSchema } from '@/lib/schema';
 
 interface NewsletterContentProps {
     newsletter: Newsletter;
@@ -31,6 +32,13 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
     const { isAdmin } = useAuth();
     const [viewCount, setViewCount] = useState(newsletter.views || 0);
     const [isTracking, setIsTracking] = useState(false);
+
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    const articleSchema = generateArticleSchema(newsletter, baseUrl);
+    const breadcrumbSchema = generateBreadcrumbSchema([
+        { name: 'Home', url: '/' },
+        { name: newsletter.title, url: `/p/${newsletter.slug}` },
+    ], baseUrl);
 
     // Track newsletter view
     useEffect(() => {
@@ -108,6 +116,14 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
     return (
         <div className="flex flex-col bg-slate-50">
             <ScrollTop />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }}
+            />
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+            />
             <Header classname="max-w-5xl" />
 
             <main className="min-h-screen px-2 md:px-1 flex-1 container mx-auto py-8 pt-20 max-w-5xl">

@@ -79,13 +79,27 @@ export async function generateMetadata({
             };
         }
 
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+        const pageUrl = `${baseUrl}/p/${slug}`;
+        const imageUrl = newsletter.thumbnail || `${baseUrl}/og-image.png`;
+
         return {
             title: `${newsletter.title} | Low Noise`,
             description: newsletter.excerpt || newsletter.title,
+            alternates: {
+                canonical: pageUrl,
+            },
             openGraph: {
                 title: newsletter.title,
                 description: newsletter.excerpt || newsletter.title,
-                images: newsletter.thumbnail ? [newsletter.thumbnail] : [],
+                url: pageUrl,
+                siteName: 'Low Noise',
+                images: [{
+                    url: imageUrl,
+                    width: 1200,
+                    height: 630,
+                    alt: newsletter.title,
+                }],
                 type: 'article',
                 publishedTime: newsletter.publishedAt
                     ? new Date(
@@ -94,12 +108,16 @@ export async function generateMetadata({
                             : newsletter.publishedAt as any
                     ).toISOString()
                     : undefined,
+                authors: ['Low Noise Team'],
+                tags: newsletter.tags || [],
             },
             twitter: {
                 card: 'summary_large_image',
+                site: '@lownoise',
+                creator: '@lownoise',
                 title: newsletter.title,
                 description: newsletter.excerpt || newsletter.title,
-                images: newsletter.thumbnail ? [newsletter.thumbnail] : [],
+                images: [imageUrl],
             },
         };
     } catch (error) {
