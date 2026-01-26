@@ -35,7 +35,8 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
 import { useAuth } from '@/lib/auth-context';
-import { toast } from "sonner"
+import { toast } from "sonner";
+import { useUploadImageMutation } from '@/lib/api';
 
 interface RichTextEditorProps {
     content: string;
@@ -75,8 +76,8 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
     const [linkUrl, setLinkUrl] = useState('');
     const [imageDialogOpen, setImageDialogOpen] = useState(false);
     const [imageFile, setImageFile] = useState<File | null>(null);
-    const [uploading, setUploading] = useState(false);
     const { user } = useAuth();
+    const [uploadImage, { isLoading: uploading }] = useUploadImageMutation();
 
     const handleLinkSubmit = useCallback(() => {
         if (linkUrl && editor) {
@@ -94,37 +95,24 @@ const Toolbar = ({ editor }: { editor: Editor | null }) => {
     const handleImageUpload = useCallback(async () => {
         if (!imageFile || !editor || !user) return;
 
-        setUploading(true);
         try {
             const formData = new FormData();
             formData.append('file', imageFile);
 
-            const idToken = await user.getIdToken();
+            const result = await uploadImage(formData).unwrap();
 
-            const response = await fetch('/api/upload/image', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                },
-                body: formData,
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                editor.chain().focus().setImage({ src: data.data.url }).run();
+            if (result.success && result.data) {
+                editor.chain().focus().setImage({ src: result.data.url }).run();
                 toast.success('Image uploaded successfully');
                 setImageDialogOpen(false);
                 setImageFile(null);
             } else {
-                throw new Error(data.error || 'Upload failed');
+                throw new Error(result.error || 'Upload failed');
             }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to upload image');
-        } finally {
-            setUploading(false);
         }
-    }, [imageFile, editor, toast, user]);
+    }, [imageFile, editor, user, uploadImage]);
 
     if (!editor) return null;
 

@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { Toaster } from "@/components/ui/sonner";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { Providers } from "@/lib/providers";
 
 const newsreader = Newsreader({
   variable: "--font-newsreader",
@@ -75,9 +76,11 @@ export default function RootLayout({
         className={`${newsreader.variable} ${ibmPlexMono.variable} antialiased`}
       >
         <ErrorBoundary>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <Providers>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </Providers>
         </ErrorBoundary>
         <Toaster position="top-center" />
       </body>

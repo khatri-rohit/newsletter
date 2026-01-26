@@ -6,11 +6,12 @@ import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
 import { toast } from "sonner"
 import { z } from "zod";
+import { useSubscribeMutation } from '@/lib/api';
 
 
 export function NewsletterSubscribe() {
     const [email, setEmail] = useState('');
-    const [loading, setLoading] = useState(false);
+    const [subscribe, { isLoading }] = useSubscribeMutation();
 
     const schema = z.object({
         email: z.string().email(),
@@ -20,7 +21,6 @@ export function NewsletterSubscribe() {
         e.preventDefault();
 
         const validation = schema.safeParse({ email });
-        console.log(validation)
 
         if (!validation.success) {
             toast.error('Invalid Email', {
@@ -31,28 +31,17 @@ export function NewsletterSubscribe() {
         }
 
         try {
-            setLoading(true);
+            const result = await subscribe({ email }).unwrap();
 
-            // Call API route instead of direct Firestore access
-            const response = await fetch('/api/subscribe', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ email }),
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
+            if (result.success) {
                 toast.success('Success! 🎉', {
-                    description: data.message,
+                    description: result.data?.message || 'You\'ve successfully subscribed!',
                     descriptionClassName: 'text-gray-900!',
                 });
                 setEmail('');
             } else {
                 toast.error('Subscription Failed', {
-                    description: data.error || 'Something went wrong. Please try again.',
+                    description: result.error || 'Something went wrong. Please try again.',
                     descriptionClassName: 'text-gray-900!',
                 });
             }
@@ -62,8 +51,6 @@ export function NewsletterSubscribe() {
                 description: 'Something went wrong. Please try again.',
                 descriptionClassName: 'text-gray-900!',
             });
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -75,15 +62,15 @@ export function NewsletterSubscribe() {
                     placeholder="Enter your email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    disabled={loading}
+                    disabled={isLoading}
                     className="flex-1 h-10 sm:h-11 text-sm sm:text-base font-light"
                 />
                 <Button
                     type="submit"
-                    disabled={loading}
+                    disabled={isLoading}
                     className="h-10 sm:h-11 px-6 sm:px-8 text-sm sm:text-base font-light cursor-pointer w-full sm:w-auto"
                 >
-                    {loading ? (
+                    {isLoading ? (
                         <Loader2 className="h-4 w-4 animate-spin" />
                     ) : (
                         'Subscribe'

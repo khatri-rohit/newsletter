@@ -24,104 +24,59 @@ import { Separator } from '@/components/ui/separator';
 import { LogOut, User, Mail, Calendar, Shield, Bell, BellOff, CheckCircle2, XCircle } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
+import { useGetSubscriptionStatusQuery, useUpdateSubscriptionMutation, useUnsubscribeMutation } from '@/lib/api';
 
 export function UserMenu() {
     const { user, signOut, isAdmin } = useAuth();
     const [profileOpen, setProfileOpen] = useState(false);
-    const [subscriptionStatus, setSubscriptionStatus] = useState<{
-        isSubscribed: boolean;
-        status: string;
-        subscribedAt?: any;
-    } | null>(null);
-    const [loading, setLoading] = useState(false);
-    const [actionLoading, setActionLoading] = useState(false);
+
+    // RTK Query hooks
+    const { data: subscriptionData, isLoading: loading, refetch } = useGetSubscriptionStatusQuery(undefined, {
+        skip: !profileOpen || !user,
+    });
+    const [updateSubscription, { isLoading: subscribeLoading }] = useUpdateSubscriptionMutation();
+    const [unsubscribe, { isLoading: unsubscribeLoading }] = useUnsubscribeMutation();
+
+    const actionLoading = subscribeLoading || unsubscribeLoading;
+
+    const subscriptionStatus = subscriptionData?.data ? {
+        isSubscribed: subscriptionData.data.subscribed,
+        status: subscriptionData.data.subscribed ? 'active' : 'inactive',
+    } : null;
 
     useEffect(() => {
         if (profileOpen && user) {
-            fetchSubscriptionStatus();
+            refetch();
         }
-    }, [profileOpen, user]);
-
-    const fetchSubscriptionStatus = async () => {
-        setLoading(true);
-        try {
-            const idToken = await user?.getIdToken();
-            const response = await fetch('/api/user/subscription', {
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                },
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                setSubscriptionStatus(data.data);
-            } else {
-                toast.error('Failed to load subscription status');
-            }
-        } catch (error) {
-            console.error('Error fetching subscription:', error);
-            toast.error('Failed to load subscription status');
-        } finally {
-            setLoading(false);
-        }
-    };
+    }, [profileOpen, user, refetch]);
 
     const handleSubscribe = async () => {
-        setActionLoading(true);
         try {
-            const idToken = await user?.getIdToken();
-            const response = await fetch('/api/user/subscription', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                },
-            });
+            const result = await updateSubscription({}).unwrap();
 
-            const data = await response.json();
-
-            if (data.success) {
+            if (result.success) {
                 toast.success('Successfully subscribed to newsletter! 🎉');
-                await fetchSubscriptionStatus();
             } else {
-                toast.error(data.error || 'Failed to subscribe');
+                toast.error(result.error || 'Failed to subscribe');
             }
         } catch (error) {
             console.error('Error subscribing:', error);
             toast.error('Failed to subscribe');
-        } finally {
-            setActionLoading(false);
         }
     };
 
     const handleUnsubscribe = async () => {
-        // if (!confirm('Are you sure you want to unsubscribe from the newsletter?')) {
-        //     return;
-        // }
-
-        setActionLoading(true);
         try {
-            const idToken = await user?.getIdToken();
-            const response = await fetch('/api/user/subscription', {
-                method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                },
-            });
+            const result = await unsubscribe().unwrap();
 
-            const data = await response.json();
-
-            if (data.success) {
+            if (result.success) {
                 toast.success('Successfully unsubscribed from newsletter');
-                await fetchSubscriptionStatus();
             } else {
-                toast.error(data.error || 'Failed to unsubscribe');
+                toast.error(result.error || 'Failed to unsubscribe');
             }
         } catch (error) {
             console.error('Error unsubscribing:', error);
             toast.error('Failed to unsubscribe');
-        } finally {
-            setActionLoading(false);
         }
     };
 
@@ -342,16 +297,6 @@ export function UserMenu() {
                                             </Badge>
                                         </div>
 
-                                        {subscriptionStatus.isSubscribed && subscriptionStatus.subscribedAt && (
-                                            <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 mb-5 border border-slate-200/50 shadow-sm">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <Calendar className="h-4 w-4 text-slate-500" />
-                                                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Member Since</p>
-                                                </div>
-                                                <p className="font-semibold text-slate-800 text-lg">{formatDate(subscriptionStatus.subscribedAt)}</p>
-                                            </div>
-                                        )}
-
                                         <div className="flex gap-3">
                                             {subscriptionStatus.isSubscribed ? (
                                                 <Button
@@ -392,7 +337,7 @@ export function UserMenu() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        onClick={fetchSubscriptionStatus}
+                                        onClick={() => refetch()}
                                         className="border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 font-semibold"
                                     >
                                         Try Again

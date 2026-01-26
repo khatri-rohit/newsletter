@@ -11,32 +11,19 @@ import { Sparkles, Calendar, Clock } from "lucide-react";
 import { Newsletter } from "@/services/types";
 import { LoadingScreen } from "@/components/loading-screen";
 import { useAuth } from "@/lib/auth-context";
+import { useGetNewslettersQuery } from "@/lib/api";
 
 export default function Home() {
   const router = useRouter();
   const { isAdmin } = useAuth();
-  const [newsletters, setNewsletters] = useState<Newsletter[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchNewsletters = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch('/api/newsletters?status=published&limit=6');
-        const data = await response.json();
+  // Use RTK Query for automatic caching and refetching
+  const { data, isLoading: loading } = useGetNewslettersQuery({
+    status: 'published',
+    limit: 6,
+  });
 
-        if (data.success) {
-          setNewsletters(data.data.newsletters || []);
-        }
-      } catch (error) {
-        console.error('Error fetching newsletters:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNewsletters();
-  }, []);
+  const newsletters = data?.data?.newsletters || [];
 
   const formatDate = (timestamp: unknown): string => {
     if (!timestamp) return '';

@@ -27,6 +27,7 @@ import {
     FileText,
     Image as ImageIcon,
 } from 'lucide-react';
+import { useUploadImageMutation, useCreateNewsletterMutation } from '@/lib/api';
 
 interface NewsletterFormData {
     title: string;
@@ -40,11 +41,13 @@ interface NewsletterFormData {
 function AdminPostContent() {
     const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
-    const [saving, setSaving] = useState(false);
-    const [publishing, setPublishing] = useState(false);
     const [currentTab, setCurrentTab] = useState('edit');
-    const [thumbnailUploading, setThumbnailUploading] = useState(false);
     const [tagInput, setTagInput] = useState('');
+
+    // RTK Query hooks
+    const [uploadImage, { isLoading: thumbnailUploading }] = useUploadImageMutation();
+    const [createNewsletter, { isLoading: saving }] = useCreateNewsletterMutation();
+    const [publishing, setPublishing] = useState(false);
 
     const [formData, setFormData] = useState<NewsletterFormData>({
         title: '',
@@ -94,32 +97,20 @@ function AdminPostContent() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setThumbnailUploading(true);
         try {
-            const formData = new FormData();
-            formData.append('file', file);
+            const formDataToUpload = new FormData();
+            formDataToUpload.append('file', file);
 
-            const idToken = await user?.getIdToken();
-            const response = await fetch('/api/upload/image', {
-                method: 'POST',
-                headers: {
-                    Authorization: `Bearer ${idToken}`,
-                },
-                body: formData,
-            });
+            const result = await uploadImage(formDataToUpload).unwrap();
 
-            const data = await response.json();
-
-            if (data.success) {
-                setFormData((prev) => ({ ...prev, thumbnail: data.data.url }));
+            if (result.success && result.data) {
+                setFormData((prev) => ({ ...prev, thumbnail: result.data!.url }));
                 toast.success('Thumbnail uploaded successfully');
             } else {
-                throw new Error(data.error || 'Upload failed');
+                throw new Error(result.error || 'Upload failed');
             }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to upload thumbnail');
-        } finally {
-            setThumbnailUploading(false);
         }
     };
 
@@ -146,36 +137,19 @@ function AdminPostContent() {
             return;
         }
 
-        setSaving(true);
         try {
-            const idToken = await user?.getIdToken();
-            console.log({
+            const result = await createNewsletter({
                 ...formData,
                 status: 'draft',
-            })
-            const response = await fetch('/api/newsletters', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${idToken}`,
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    status: 'draft',
-                }),
-            });
+            }).unwrap();
 
-            const data = await response.json();
-
-            if (data.success) {
+            if (result.success) {
                 toast.success('Draft saved successfully');
             } else {
-                throw new Error(data.error || 'Failed to save draft');
+                throw new Error(result.error || 'Failed to save draft');
             }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to save draft');
-        } finally {
-            setSaving(false);
         }
     };
 
@@ -187,26 +161,12 @@ function AdminPostContent() {
 
         setPublishing(true);
         try {
-            const idToken = await user?.getIdToken();
-            console.log({
+            const result = await createNewsletter({
                 ...formData,
                 status: 'published',
-            })
-            const response = await fetch('/api/newsletters', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: `Bearer ${idToken}`,
-                },
-                body: JSON.stringify({
-                    ...formData,
-                    status: 'published',
-                }),
-            });
+            }).unwrap();
 
-            const data = await response.json();
-
-            if (data.success) {
+            if (result.success) {
                 toast.success('Newsletter published successfully! 🎉');
 
                 // Reset form
@@ -219,7 +179,7 @@ function AdminPostContent() {
                     status: 'draft',
                 });
             } else {
-                throw new Error(data.error || 'Failed to publish');
+                throw new Error(result.error || 'Failed to publish');
             }
         } catch (error) {
             toast.error(error instanceof Error ? error.message : 'Failed to publish newsletter');

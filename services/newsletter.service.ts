@@ -1,10 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import * as admin from "firebase-admin";
-import {
-  Newsletter,
-  CreateNewsletterInput,
-  UpdateNewsletterInput,
-} from "./types";
+import * as admin from 'firebase-admin';
+import { Newsletter, CreateNewsletterInput, UpdateNewsletterInput } from './types';
 
 /**
  * Newsletter Service
@@ -16,7 +12,7 @@ export class NewsletterService {
 
   constructor() {
     this.db = admin.firestore();
-    this.newslettersCollection = this.db.collection("newsletters");
+    this.newslettersCollection = this.db.collection('newsletters');
   }
 
   /**
@@ -28,7 +24,7 @@ export class NewsletterService {
       uid: string;
       email: string;
       displayName?: string | null;
-    },
+    }
   ): Promise<Newsletter> {
     try {
       const now = admin.firestore.FieldValue.serverTimestamp();
@@ -44,10 +40,10 @@ export class NewsletterService {
         slug,
         content: input.content,
         excerpt: input.excerpt,
-        thumbnail: input.thumbnail || "",
-        status: input.status || "draft",
+        thumbnail: input.thumbnail || '',
+        status: input.status || 'draft',
         authorId: author.uid,
-        authorName: author.displayName || author.email.split("@")[0],
+        authorName: author.displayName || author.email.split('@')[0],
         authorEmail: author.email,
         tags: input.tags || [],
         createdAt: now as admin.firestore.Timestamp,
@@ -62,13 +58,11 @@ export class NewsletterService {
 
       // Only add scheduledFor if it exists (avoid undefined)
       if (input.scheduledFor) {
-        newsletterData.scheduledFor = admin.firestore.Timestamp.fromDate(
-          input.scheduledFor,
-        );
+        newsletterData.scheduledFor = admin.firestore.Timestamp.fromDate(input.scheduledFor);
       }
 
       // Only add publishedAt if status is published (avoid undefined)
-      if (input.status === "published") {
+      if (input.status === 'published') {
         newsletterData.publishedAt = now as admin.firestore.Timestamp;
       }
 
@@ -79,8 +73,8 @@ export class NewsletterService {
         ...newsletterData,
       } as Newsletter;
     } catch (error) {
-      console.error("Error creating newsletter:", error);
-      throw new Error("Failed to create newsletter");
+      console.error('Error creating newsletter:', error);
+      throw new Error('Failed to create newsletter');
     }
   }
 
@@ -92,20 +86,19 @@ export class NewsletterService {
       const { id, ...updateData } = input;
 
       if (!id) {
-        throw new Error("Newsletter ID is required");
+        throw new Error('Newsletter ID is required');
       }
 
       const docRef = this.newslettersCollection.doc(id);
       const doc = await docRef.get();
 
       if (!doc.exists) {
-        throw new Error("Newsletter not found");
+        throw new Error('Newsletter not found');
       }
 
       const updates: Partial<Newsletter> = {
         ...updateData,
-        updatedAt:
-          admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
       };
 
       // Update slug if title changed
@@ -126,10 +119,7 @@ export class NewsletterService {
       }
 
       // Set publishedAt if status changed to published
-      if (
-        updateData.status === "published" &&
-        doc.data()?.status !== "published"
-      ) {
+      if (updateData.status === 'published' && doc.data()?.status !== 'published') {
         updates.publishedAt =
           admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp;
       }
@@ -142,8 +132,8 @@ export class NewsletterService {
         ...updatedDoc.data(),
       } as Newsletter;
     } catch (error) {
-      console.error("Error updating newsletter:", error);
-      throw new Error("Failed to update newsletter");
+      console.error('Error updating newsletter:', error);
+      throw new Error('Failed to update newsletter');
     }
   }
 
@@ -163,8 +153,8 @@ export class NewsletterService {
         ...doc.data(),
       } as Newsletter;
     } catch (error) {
-      console.error("Error getting newsletter:", error);
-      throw new Error("Failed to get newsletter");
+      console.error('Error getting newsletter:', error);
+      throw new Error('Failed to get newsletter');
     }
   }
 
@@ -173,10 +163,7 @@ export class NewsletterService {
    */
   async getNewsletterBySlug(slug: string): Promise<Newsletter | null> {
     try {
-      const snapshot = await this.newslettersCollection
-        .where("slug", "==", slug)
-        .limit(1)
-        .get();
+      const snapshot = await this.newslettersCollection.where('slug', '==', slug).limit(1).get();
 
       if (snapshot.empty) {
         return null;
@@ -188,8 +175,8 @@ export class NewsletterService {
         ...doc.data(),
       } as Newsletter;
     } catch (error) {
-      console.error("Error getting newsletter by slug:", error);
-      throw new Error("Failed to get newsletter");
+      console.error('Error getting newsletter by slug:', error);
+      throw new Error('Failed to get newsletter');
     }
   }
 
@@ -197,7 +184,7 @@ export class NewsletterService {
    * List newsletters with pagination and filters
    */
   async listNewsletters(options?: {
-    status?: "draft" | "published" | "scheduled";
+    status?: 'draft' | 'published' | 'scheduled';
     authorId?: string;
     limit?: number;
     startAfter?: string;
@@ -206,22 +193,20 @@ export class NewsletterService {
       let query: admin.firestore.Query = this.newslettersCollection;
 
       if (options?.status) {
-        query = query.where("status", "==", options.status);
+        query = query.where('status', '==', options.status);
       }
 
       if (options?.authorId) {
-        query = query.where("authorId", "==", options.authorId);
+        query = query.where('authorId', '==', options.authorId);
       }
 
-      query = query.orderBy("createdAt", "desc");
+      query = query.orderBy('createdAt', 'desc');
 
       const limit = options?.limit || 20;
       query = query.limit(limit + 1); // Fetch one extra to check if there are more
 
       if (options?.startAfter) {
-        const startDoc = await this.newslettersCollection
-          .doc(options.startAfter)
-          .get();
+        const startDoc = await this.newslettersCollection.doc(options.startAfter).get();
         if (startDoc.exists) {
           query = query.startAfter(startDoc);
         }
@@ -237,8 +222,8 @@ export class NewsletterService {
 
       return { newsletters, hasMore };
     } catch (error) {
-      console.error("Error listing newsletters:", error);
-      throw new Error("Failed to list newsletters");
+      console.error('Error listing newsletters:', error);
+      throw new Error('Failed to list newsletters');
     }
   }
 
@@ -249,8 +234,8 @@ export class NewsletterService {
     try {
       await this.newslettersCollection.doc(id).delete();
     } catch (error) {
-      console.error("Error deleting newsletter:", error);
-      throw new Error("Failed to delete newsletter");
+      console.error('Error deleting newsletter:', error);
+      throw new Error('Failed to delete newsletter');
     }
   }
 
@@ -263,11 +248,11 @@ export class NewsletterService {
       const doc = await docRef.get();
 
       if (!doc.exists) {
-        throw new Error("Newsletter not found");
+        throw new Error('Newsletter not found');
       }
 
       await docRef.update({
-        status: "published",
+        status: 'published',
         publishedAt: admin.firestore.FieldValue.serverTimestamp(),
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
@@ -278,22 +263,103 @@ export class NewsletterService {
         ...updatedDoc.data(),
       } as Newsletter;
     } catch (error) {
-      console.error("Error publishing newsletter:", error);
-      throw new Error("Failed to publish newsletter");
+      console.error('Error publishing newsletter:', error);
+      throw new Error('Failed to publish newsletter');
     }
   }
 
   /**
-   * Increment newsletter views
+   * Increment newsletter views with deduplication
+   * Uses a subcollection to track unique views and prevent duplicate counting
+   * @param id - Newsletter ID
+   * @param viewerId - Unique identifier for the viewer (session ID, IP hash, or user ID)
+   * @returns Object indicating if view was counted and current total views
    */
-  async incrementViews(id: string): Promise<void> {
+  async incrementViews(
+    id: string,
+    viewerId: string
+  ): Promise<{ counted: boolean; totalViews: number }> {
     try {
-      await this.newslettersCollection.doc(id).update({
-        views: admin.firestore.FieldValue.increment(1),
+      // Validate inputs
+      if (!id || !viewerId) {
+        console.error('Invalid parameters for incrementViews', { id, viewerId });
+        return { counted: false, totalViews: 0 };
+      }
+
+      const docRef = this.newslettersCollection.doc(id);
+      const viewsRef = docRef.collection('viewTracking').doc(viewerId);
+
+      // Use a transaction to ensure atomicity
+      const result = await this.db.runTransaction(async (transaction) => {
+        // Check if newsletter exists
+        const newsletterDoc = await transaction.get(docRef);
+        if (!newsletterDoc.exists) {
+          throw new Error(`Newsletter ${id} not found`);
+        }
+
+        // Check if this viewer has already viewed this newsletter
+        const viewDoc = await transaction.get(viewsRef);
+
+        const currentViews = (newsletterDoc.data()?.views as number) || 0;
+
+        if (viewDoc.exists) {
+          // Already viewed - check if we should count it again (e.g., after 24 hours)
+          const lastViewedAt = viewDoc.data()?.viewedAt?.toMillis() || 0;
+          const now = Date.now();
+          const hoursSinceLastView = (now - lastViewedAt) / (1000 * 60 * 60);
+
+          // Only count as new view if more than 24 hours have passed
+          if (hoursSinceLastView < 24) {
+            return { counted: false, totalViews: currentViews };
+          }
+        }
+
+        // Increment view count
+        transaction.update(docRef, {
+          views: admin.firestore.FieldValue.increment(1),
+          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+
+        // Record this view
+        transaction.set(
+          viewsRef,
+          {
+            viewedAt: admin.firestore.FieldValue.serverTimestamp(),
+            viewerId,
+          },
+          { merge: true }
+        );
+
+        return { counted: true, totalViews: currentViews + 1 };
       });
+
+      return result;
     } catch (error) {
-      console.error("Error incrementing views:", error);
-      // Don't throw error for view tracking
+      console.error('Error incrementing views:', {
+        id,
+        viewerId,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      // Return gracefully instead of throwing to not break the API response
+      return { counted: false, totalViews: 0 };
+    }
+  }
+
+  /**
+   * Get total unique viewers for a newsletter
+   */
+  async getUniqueViewers(id: string): Promise<number> {
+    try {
+      const viewsSnapshot = await this.newslettersCollection
+        .doc(id)
+        .collection('viewTracking')
+        .count()
+        .get();
+
+      return viewsSnapshot.data().count;
+    } catch (error) {
+      console.error('Error getting unique viewers:', error);
+      return 0;
     }
   }
 
@@ -308,16 +374,16 @@ export class NewsletterService {
     return title
       .toLowerCase()
       .trim()
-      .replace(/[^\w\s-]/g, "") // Remove special characters
-      .replace(/[\s_-]+/g, "-") // Replace spaces and underscores with hyphens
-      .replace(/^-+|-+$/g, ""); // Remove leading/trailing hyphens
+      .replace(/[^\w\s-]/g, '') // Remove special characters
+      .replace(/[\s_-]+/g, '-') // Replace spaces and underscores with hyphens
+      .replace(/^-+|-+$/g, ''); // Remove leading/trailing hyphens
   }
 
   /**
    * Count words in HTML content
    */
   private countWords(html: string): number {
-    const text = html.replace(/<[^>]*>/g, " "); // Remove HTML tags
+    const text = html.replace(/<[^>]*>/g, ' '); // Remove HTML tags
     const words = text.trim().split(/\s+/);
     return words.filter((word) => word.length > 0).length;
   }

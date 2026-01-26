@@ -4,24 +4,22 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Newsletter } from '@/services/types';
 import { NewsletterContent } from './newsletter-content';
+import { serverApiClient } from '@/lib/server-axios';
+import { ApiResponse } from '@/lib/api';
 
-// Server-side data fetching
+// Server-side data fetching with axios
 async function getNewsletter(slug: string): Promise<Newsletter | null> {
     try {
-        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-        const response = await fetch(`${baseUrl}/api/newsletters/slug/${slug}`, {
-            cache: 'no-store', // For now, we'll optimize caching later
-            headers: {
-                'Content-Type': 'application/json',
-            },
-        });
+        const response = await serverApiClient.get<ApiResponse<Newsletter>>(
+            `/newsletters/slug/${slug}`,
+            {
+                headers: {
+                    'Cache-Control': 'no-cache',
+                },
+            }
+        );
 
-        if (!response.ok) {
-            return null;
-        }
-
-        const data = await response.json();
-        return data.success ? data.data : null;
+        return response.data.success && response.data.data ? response.data.data : null;
     } catch (error) {
         console.error('Error fetching newsletter:', error);
         return null;

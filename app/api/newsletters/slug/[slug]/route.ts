@@ -20,6 +20,31 @@ if (admin.apps.length === 0) {
 const newsletterService = new NewsletterService();
 
 /**
+ * Generate a unique viewer ID based on IP address and user agent
+ * This helps prevent duplicate view counting from the same user
+ */
+function generateViewerId(request: NextRequest): string {
+  const ip =
+    request.headers.get('x-forwarded-for')?.split(',')[0] ||
+    request.headers.get('x-real-ip') ||
+    'unknown';
+  const userAgent = request.headers.get('user-agent') || 'unknown';
+
+  // Create a hash-like identifier (simple approach)
+  const identifier = `${ip}-${userAgent}`;
+
+  // Use a simple hash function to create a shorter, more manageable ID
+  let hash = 0;
+  for (let i = 0; i < identifier.length; i++) {
+    const char = identifier.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32bit integer
+  }
+
+  return Math.abs(hash).toString(36);
+}
+
+/**
  * GET /api/newsletters/slug/[slug]
  * Get a newsletter by slug and increment views
  * Includes rate limiting and caching
@@ -67,9 +92,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const cachedNewsletter = cache.get(cacheKey) as Newsletter | undefined;
 
     if (cachedNewsletter) {
-      // Still increment views asynchronously
+      // Still increment views asynchronously with deduplication
       if (cachedNewsletter.id) {
-        newsletterService.incrementViews(cachedNewsletter.id).catch((error) => {
+        const viewerId = generateViewerId(request);
+        newsletterService.incrementViews(cachedNewsletter.id, viewerId).catch((error) => {
           console.error('Error incrementing views:', error);
         });
       }
@@ -108,9 +134,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     // Cache the result (5 minutes TTL)
     cache.set(cacheKey, newsletter, 5 * 60 * 1000);
 
-    // Increment views asynchronously (fire and forget)
+    // Increment views asynchronously (fire and forget) with deduplication
     if (newsletter.id) {
-      newsletterService.incrementViews(newsletter.id).catch((error) => {
+      const viewerId = generateViewerId(request);
+      newsletterService.incrementViews(newsletter.id, viewerId).catch((error) => {
         console.error('Error incrementing views:', error);
       });
     }

@@ -10,6 +10,7 @@ import {
     signOut as firebaseSignOut,
 } from 'firebase/auth';
 import { auth } from './firebase';
+import apiClient from './axios';
 
 interface AuthContextType {
     user: User | null;
@@ -45,28 +46,16 @@ async function notifyAuthWebhook(user: User, provider: string) {
     try {
         const idToken = await user.getIdToken();
 
-        const response = await fetch('/api/webhook', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-                provider,
-                idToken,
-            }),
+        const response = await apiClient.post('/webhook', {
+            uid: user.uid,
+            email: user.email,
+            displayName: user.displayName,
+            photoURL: user.photoURL,
+            provider,
+            idToken,
         });
 
-        if (!response.ok) {
-            const error = await response.json();
-            console.error('Auth webhook error:', error);
-        } else {
-            const result = await response.json();
-            console.log('Auth webhook success:', result);
-        }
+        console.log('Auth webhook success:', response.data);
     } catch (error) {
         console.error('Failed to notify auth webhook:', error);
         // Don't throw - we don't want to break the auth flow
