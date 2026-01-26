@@ -48,6 +48,18 @@ const Footer = ({ classname }: { classname?: string }) => {
                             >
                                 Posts
                             </Link>
+                            <Link
+                                href="/privacy"
+                                className="text-sm text-slate-600 hover:text-blue-600 transition-colors w-fit"
+                            >
+                                Privacy Policy
+                            </Link>
+                            <Link
+                                href="/terms"
+                                className="text-sm text-slate-600 hover:text-blue-600 transition-colors w-fit"
+                            >
+                                Terms of Service
+                            </Link>
                         </nav>
                     </div>
 
