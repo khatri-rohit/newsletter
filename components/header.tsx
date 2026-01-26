@@ -13,7 +13,7 @@ export function Header({ classname }: { classname?: string }) {
 
     return (
         <>
-            <header className={`${classname ? classname : 'max-w-7xl'} container mx-auto fixed top-0 left-1/2 w-full z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md -translate-x-1/2 shadow-sm`}>
+            <header className={`${classname ? classname : 'max-w-7xl'} container mx-auto fixed top-0 left-1/2 w-full z-50 bg-transparent backdrop-blur-md -translate-x-1/2`}>
                 <div className="container mx-auto px-3 sm:px-4 h-14 sm:h-16 flex items-center justify-between">
                     <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         <Link href="/" className="text-sm sm:text-base md:text-lg font-bold truncate py-3">
