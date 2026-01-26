@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import * as admin from "firebase-admin";
-import { getUserService } from "@/services/user.service";
+import { NextRequest, NextResponse } from 'next/server';
+import * as admin from 'firebase-admin';
+import { getUserService } from '@/services/user.service';
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
@@ -8,7 +8,7 @@ if (admin.apps.length === 0) {
     credential: admin.credential.cert({
       projectId: process.env.FIREBASE_PROJECT_ID,
       clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
     }),
   });
 }
@@ -19,24 +19,41 @@ if (admin.apps.length === 0) {
  */
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
+    const authHeader = request.headers.get('authorization');
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.log('[Subscription GET] Missing or invalid authorization header');
       return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
+        { success: false, error: 'Unauthorized - Missing authentication token' },
+        { status: 401 }
       );
     }
 
-    const token = authHeader.split("Bearer ")[1];
-    const decodedToken = await admin.auth().verifyIdToken(token);
+    const token = authHeader.split('Bearer ')[1];
+
+    if (!token) {
+      console.log('[Subscription GET] Empty token');
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Invalid token format' },
+        { status: 401 }
+      );
+    }
+
+    let decodedToken;
+    try {
+      decodedToken = await admin.auth().verifyIdToken(token);
+    } catch (error) {
+      console.error('[Subscription GET] Token verification failed:', error);
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized - Invalid or expired token' },
+        { status: 401 }
+      );
+    }
+
     const userEmail = decodedToken.email;
 
     if (!userEmail) {
-      return NextResponse.json(
-        { success: false, error: "User email not found" },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'User email not found' }, { status: 400 });
     }
 
     const userService = getUserService();
@@ -46,17 +63,18 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        isSubscribed,
-        status: subscriber?.status || "unsubscribed",
+        subscribed: isSubscribed,
+        email: userEmail,
+        status: subscriber?.status || 'unsubscribed',
         subscribedAt: subscriber?.subscribedAt,
         preferences: subscriber?.preferences,
       },
     });
   } catch (error) {
-    console.error("Error checking subscription:", error);
+    console.error('Error checking subscription:', error);
     return NextResponse.json(
-      { success: false, error: "Failed to check subscription status" },
-      { status: 500 },
+      { success: false, error: 'Failed to check subscription status' },
+      { status: 500 }
     );
   }
 }
@@ -67,26 +85,20 @@ export async function GET(request: NextRequest) {
  */
 export async function POST(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
+    const authHeader = request.headers.get('authorization');
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.split("Bearer ")[1];
+    const token = authHeader.split('Bearer ')[1];
     const decodedToken = await admin.auth().verifyIdToken(token);
     const userEmail = decodedToken.email;
     const userName = decodedToken.name;
     const userId = decodedToken.uid;
 
     if (!userEmail) {
-      return NextResponse.json(
-        { success: false, error: "User email not found" },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'User email not found' }, { status: 400 });
     }
 
     const userService = getUserService();
@@ -96,19 +108,16 @@ export async function POST(request: NextRequest) {
       email: userEmail,
       name: userName,
       userId: userId,
-      source: "auth",
+      source: 'auth',
     });
 
     return NextResponse.json({
       success: true,
-      message: "Successfully subscribed to newsletter!",
+      message: 'Successfully subscribed to newsletter!',
     });
   } catch (error) {
-    console.error("Error subscribing user:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to subscribe" },
-      { status: 500 },
-    );
+    console.error('Error subscribing user:', error);
+    return NextResponse.json({ success: false, error: 'Failed to subscribe' }, { status: 500 });
   }
 }
 
@@ -118,38 +127,29 @@ export async function POST(request: NextRequest) {
  */
 export async function DELETE(request: NextRequest) {
   try {
-    const authHeader = request.headers.get("authorization");
+    const authHeader = request.headers.get('authorization');
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { success: false, error: "Unauthorized" },
-        { status: 401 },
-      );
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    const token = authHeader.split("Bearer ")[1];
+    const token = authHeader.split('Bearer ')[1];
     const decodedToken = await admin.auth().verifyIdToken(token);
     const userEmail = decodedToken.email;
 
     if (!userEmail) {
-      return NextResponse.json(
-        { success: false, error: "User email not found" },
-        { status: 400 },
-      );
+      return NextResponse.json({ success: false, error: 'User email not found' }, { status: 400 });
     }
 
     const userService = getUserService();
-    await userService.updateSubscriberStatus(userEmail, "unsubscribed");
+    await userService.updateSubscriberStatus(userEmail, 'unsubscribed');
 
     return NextResponse.json({
       success: true,
-      message: "Successfully unsubscribed from newsletter",
+      message: 'Successfully unsubscribed from newsletter',
     });
   } catch (error) {
-    console.error("Error unsubscribing user:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to unsubscribe" },
-      { status: 500 },
-    );
+    console.error('Error unsubscribing user:', error);
+    return NextResponse.json({ success: false, error: 'Failed to unsubscribe' }, { status: 500 });
   }
 }

@@ -2,17 +2,17 @@
 // EMAIL SERVICE - NODEMAILER INTEGRATION
 // ==========================================
 
-import nodemailer from "nodemailer";
-import { z } from "zod";
+import nodemailer from 'nodemailer';
+import { z } from 'zod';
 
 // ==========================================
 // VALIDATION SCHEMAS
 // ==========================================
 
 const EmailConfigSchema = z.object({
-  host: z.string().min(1, "GMAIL_HOST is required"),
-  user: z.string().email("Valid GMAIL_USER is required"),
-  password: z.string().min(1, "GMAIL_PASSWORD is required"),
+  host: z.string().min(1, 'GMAIL_HOST is required'),
+  user: z.string().email('Valid GMAIL_USER is required'),
+  password: z.string().min(1, 'GMAIL_PASSWORD is required'),
 });
 
 // ==========================================
@@ -28,7 +28,7 @@ interface EmailTemplate {
 class EmailTemplates {
   static welcomeEmail(name: string, email: string): EmailTemplate {
     return {
-      subject: "🎉 Welcome to The Low Noise - Your Daily AI News Starts Now!",
+      subject: '🎉 Welcome to The Low Noise - Your Daily AI News Starts Now!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -46,9 +46,7 @@ class EmailTemplates {
                   <tr>
                     <td style="padding: 40px 40px 20px; text-align: center; border-bottom: 1px solid #e5e7eb;">
                       <div style="display: inline-block; position: relative; margin-bottom: 16px;">
-                        <div style="width: 48px; height: 48px; border: 2px solid #000; display: inline-flex; align-items: center; justify-content: center;">
-                          <span style="font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold;">R</span>
-                        </div>
+                        <img src="${process.env.NEXT_PUBLIC_BASE_URL}/lownoise.png" alt="The Low Noise" style="width: 80px; height: auto;" />
                       </div>
                       <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: #111827;">Welcome to The Low Noise</h1>
                     </td>
@@ -57,7 +55,7 @@ class EmailTemplates {
                   <!-- Content -->
                   <tr>
                     <td style="padding: 40px;">
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">Hi ${name || "there"},</p>
+                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">Hi ${name || 'there'},</p>
                       
                       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
                         Thank you for signing up! You've just taken the first step toward staying ahead in the fast-moving world of AI. 🚀
@@ -88,7 +86,7 @@ class EmailTemplates {
                       
                       <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #374151;">
                         Cheers,<br>
-                        <strong>The Low Noise Team</strong>
+                        <strong>Rohit Khatri</strong>
                       </p>
                     </td>
                   </tr>
@@ -114,7 +112,7 @@ class EmailTemplates {
       text: `
 Welcome to The Low Noise!
 
-Hi ${name || "there"},
+Hi ${name || 'there'},
 
 Thank you for signing up! You've just taken the first step toward staying ahead in the fast-moving world of AI.
 
@@ -131,7 +129,7 @@ First newsletter: Tomorrow
 Questions or feedback? Just hit reply—we'd love to hear from you.
 
 Cheers,
-The Low Noise Team
+Rohit Khatri
 
 © 2026 The Low Noise. All rights reserved.
       `,
@@ -140,7 +138,7 @@ The Low Noise Team
 
   static reLoginEmail(name: string, email: string): EmailTemplate {
     return {
-      subject: "👋 Welcome back to The Low Noise!",
+      subject: '👋 Welcome back to The Low Noise!',
       html: `
         <!DOCTYPE html>
         <html>
@@ -158,9 +156,7 @@ The Low Noise Team
                   <tr>
                     <td style="padding: 40px 40px 20px; text-align: center; border-bottom: 1px solid #e5e7eb;">
                       <div style="display: inline-block; position: relative; margin-bottom: 16px;">
-                        <div style="width: 48px; height: 48px; border: 2px solid #000; display: inline-flex; align-items: center; justify-content: center;">
-                          <span style="font-family: 'Courier New', monospace; font-size: 24px; font-weight: bold;">R</span>
-                        </div>
+                        <img src="${process.env.NEXT_PUBLIC_BASE_URL}/lownoise.png" alt="The Low Noise" style="width: 80px; height: auto;" />
                       </div>
                       <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: #111827;">Welcome Back!</h1>
                     </td>
@@ -169,7 +165,7 @@ The Low Noise Team
                   <!-- Content -->
                   <tr>
                     <td style="padding: 40px;">
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">Hi ${name || "there"},</p>
+                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">Hi ${name || 'there'},</p>
                       
                       <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
                         Great to see you again! You've successfully logged back into The Low Noise. 
@@ -194,7 +190,7 @@ The Low Noise Team
                       
                       <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #374151;">
                         Cheers,<br>
-                        <strong>The Low Noise Team</strong>
+                        <strong>Rohit Khatri</strong>
                       </p>
                     </td>
                   </tr>
@@ -220,7 +216,7 @@ The Low Noise Team
       text: `
 Welcome Back!
 
-Hi ${name || "there"},
+Hi ${name || 'there'},
 
 Great to see you again! You've successfully logged back into The Low Noise.
 
@@ -234,7 +230,7 @@ Newsletter: Daily at 7 AM
 Need help with something? Have feedback? Just hit reply—we're here to help.
 
 Cheers,
-The Low Noise Team
+Rohit Khatri
 
 © 2026 The Low Noise. All rights reserved.
       `,
@@ -286,20 +282,20 @@ export class EmailService {
       // Verify connection configuration
       this.transporter.verify((error) => {
         if (error) {
-          console.error("Email service configuration error:", error);
+          console.error('Email service configuration error:', error);
         } else {
-          console.log("Email service ready to send messages");
+          console.log('Email service ready to send messages');
         }
       });
     } catch (error) {
-      console.error("Failed to initialize email transporter:", error);
+      console.error('Failed to initialize email transporter:', error);
       throw error;
     }
   }
 
   async sendEmail(to: string, template: EmailTemplate): Promise<boolean> {
     if (!this.transporter) {
-      throw new Error("Email transporter not initialized");
+      throw new Error('Email transporter not initialized');
     }
 
     try {
@@ -311,10 +307,10 @@ export class EmailService {
         html: template.html,
       });
 
-      console.log("Email sent successfully:", info.messageId);
+      console.log('Email sent successfully:', info.messageId);
       return true;
     } catch (error) {
-      console.error("Failed to send email:", error);
+      console.error('Failed to send email:', error);
       throw error;
     }
   }
@@ -334,10 +330,10 @@ export class EmailService {
     subscribers: Array<{ email: string; name?: string }>,
     subject: string,
     htmlContent: string,
-    textContent: string,
+    textContent: string
   ): Promise<{ success: number; failed: number }> {
     if (!this.transporter) {
-      throw new Error("Email transporter not initialized");
+      throw new Error('Email transporter not initialized');
     }
 
     let success = 0;

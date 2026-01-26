@@ -39,6 +39,21 @@ This application follows strict anti-"AI slop" principles:
 - ✅ Success/error feedback with animations
 - ✅ Responsive form design
 
+### 📧 Enterprise Email Notification System
+
+- ✅ **Automated Newsletter Distribution**: Sends beautiful emails to all active subscribers when newsletter is published
+- ✅ **Smart Queue Management**: Sends emails one-by-one with 10-second intervals to ensure deliverability
+- ✅ **Retry Logic**: Automatic retry with exponential backoff (up to 3 attempts)
+- ✅ **Bounce Handling**: Detects and handles bounced emails, updates subscriber status
+- ✅ **Delivery Tracking**: Comprehensive tracking of sent, delivered, opened, clicked, bounced, and failed emails
+- ✅ **Analytics Dashboard**: Real-time stats on delivery rates, open rates, click rates, and more
+- ✅ **Professional Templates**: Responsive HTML emails with your logo, newsletter preview, and clear CTAs
+- ✅ **Background Processing**: Non-blocking API responses with real-time progress monitoring
+- ✅ **Error Handling**: Detailed logging with correlation IDs for debugging
+- ✅ **Scalability**: Configurable batch sizes and delays for any volume
+
+📚 **Full Documentation**: See [docs/EMAIL_SYSTEM.md](docs/EMAIL_SYSTEM.md) and [docs/PRE_DEPLOYMENT.md](docs/PRE_DEPLOYMENT.md)
+
 ### UI Components
 
 - ✅ Production-grade shadcn/ui components
@@ -65,18 +80,36 @@ newsletter/
 ├── app/
 │   ├── layout.tsx          # Root layout with providers
 │   ├── page.tsx            # Homepage with hero & features
-│   └── globals.css         # Global styles & CSS variables
+│   ├── globals.css         # Global styles & CSS variables
+│   ├── admin/              # Admin dashboard
+│   │   └── post/           # Newsletter creation/editing
+│   └── api/                # API routes
+│       ├── newsletters/    # Newsletter CRUD & publish
+│       ├── subscribe/      # Email subscription
+│       └── user/           # User management
 ├── components/
 │   ├── header.tsx          # Navigation header
 │   ├── auth-modal.tsx      # Authentication dialog
 │   ├── user-menu.tsx       # User dropdown menu
 │   ├── newsletter-subscribe.tsx  # Subscription form
+│   ├── rich-text-editor.tsx      # TipTap editor
 │   └── ui/                 # shadcn/ui components
 ├── lib/
 │   ├── firebase.ts         # Firebase configuration
 │   ├── auth-context.tsx    # Auth state management
 │   └── utils.ts            # Utility functions
-└── .env.local              # Environment variables
+├── services/
+│   ├── email.service.ts           # Email sending (Nodemailer)
+│   ├── email-queue.service.ts     # Email queue with retry logic
+│   ├── email-tracking.service.ts  # Delivery tracking & analytics
+│   ├── newsletter.service.ts      # Newsletter CRUD operations
+│   └── user.service.ts            # User & subscriber management
+├── docs/
+│   ├── EMAIL_SYSTEM.md            # Email system documentation
+│   └── PRE_DEPLOYMENT.md          # Deployment checklist
+├── public/
+│   └── lownoise.png               # Logo for emails
+└── .env.local              # Environment variables (see ENV_TEMPLATE.md)
 ```
 
 ## 🚀 Getting Started
@@ -87,18 +120,34 @@ newsletter/
    npm install
    ```
 
-2. **Configure Firebase**
+2. **Configure Environment Variables**
+
+   Copy the environment template and configure:
+
+   ```bash
+   # See ENV_TEMPLATE.md for all available options
+   ```
+
+   **Required for Email Notifications**:
+   - `GMAIL_HOST`: SMTP server (e.g., smtp.gmail.com)
+   - `GMAIL_USER`: Your email address
+   - `GMAIL_PASSWORD`: App password or SMTP password
+   - `NEXT_PUBLIC_APP_URL`: Your application URL
+
+   📚 **Setup Guide**: See [docs/PRE_DEPLOYMENT.md](docs/PRE_DEPLOYMENT.md) for detailed configuration
+
+3. **Configure Firebase**
    - Ensure `.env.local` has all Firebase credentials
    - Enable Google and GitHub authentication in Firebase Console
    - Set up authorized domains and redirect URIs
 
-3. **Run Development Server**
+4. **Run Development Server**
 
    ```bash
    npm run dev
    ```
 
-4. **Open in Browser**
+5. **Open in Browser**
    Navigate to `http://localhost:3000`
 
 ## 🔐 Firebase Setup
