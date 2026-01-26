@@ -4,22 +4,32 @@ import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Newsletter } from '@/services/types';
 import { NewsletterContent } from './newsletter-content';
-import { serverApiClient } from '@/lib/server-axios';
-import { ApiResponse } from '@/lib/api';
+import { NewsletterService } from '@/services/newsletter.service';
+import * as admin from 'firebase-admin';
 
-// Server-side data fetching with axios
+// Initialize Firebase Admin for server-side
+if (admin.apps.length === 0) {
+    admin.initializeApp({
+        credential: admin.credential.cert({
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+        }),
+    });
+}
+
+// Server-side data fetching - Direct service call (no HTTP)
 async function getNewsletter(slug: string): Promise<Newsletter | null> {
     try {
-        const response = await serverApiClient.get<ApiResponse<Newsletter>>(
-            `/newsletters/slug/${slug}`,
-            {
-                headers: {
-                    'Cache-Control': 'no-cache',
-                },
-            }
-        );
+        const newsletterService = new NewsletterService();
+        const newsletter = await newsletterService.getNewsletterBySlug(slug);
 
-        return response.data.success && response.data.data ? response.data.data : null;
+        // Only return published newsletters
+        if (newsletter && newsletter.status === 'published') {
+            return newsletter;
+        }
+
+        return null;
     } catch (error) {
         console.error('Error fetching newsletter:', error);
         return null;
