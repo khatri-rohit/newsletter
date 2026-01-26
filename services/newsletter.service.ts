@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as admin from 'firebase-admin';
 import { Newsletter, CreateNewsletterInput, UpdateNewsletterInput } from './types';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
 
 /**
  * Newsletter Service
@@ -11,6 +12,8 @@ export class NewsletterService {
   private newslettersCollection: admin.firestore.CollectionReference;
 
   constructor() {
+    // Ensure Firebase Admin is initialized
+    getFirebaseAdmin();
     this.db = admin.firestore();
     this.newslettersCollection = this.db.collection('newsletters');
   }

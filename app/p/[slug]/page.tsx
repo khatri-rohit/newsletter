@@ -5,18 +5,10 @@ import { notFound } from 'next/navigation';
 import { Newsletter } from '@/services/types';
 import { NewsletterContent } from './newsletter-content';
 import { NewsletterService } from '@/services/newsletter.service';
-import * as admin from 'firebase-admin';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
 
-// Initialize Firebase Admin for server-side
-if (admin.apps.length === 0) {
-    admin.initializeApp({
-        credential: admin.credential.cert({
-            projectId: process.env.FIREBASE_PROJECT_ID,
-            clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-            privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        }),
-    });
-}
+// Ensure Firebase Admin is initialized
+getFirebaseAdmin();
 
 // Server-side data fetching - Direct service call (no HTTP)
 async function getNewsletter(slug: string): Promise<Newsletter | null> {
@@ -81,12 +73,29 @@ export default async function NewsletterPage({
 }: {
     params: Promise<{ slug: string }>
 }) {
-    const { slug } = await params;
-    const newsletter = await getNewsletter(slug);
+    try {
+        const { slug } = await params;
 
-    if (!newsletter || newsletter.status !== 'published') {
-        notFound();
+        console.log('[NewsletterPage] Fetching newsletter with slug:', slug);
+
+        const newsletter = await getNewsletter(slug);
+
+        if (!newsletter) {
+            console.log('[NewsletterPage] Newsletter not found:', slug);
+            notFound();
+        }
+
+        if (newsletter.status !== 'published') {
+            console.log('[NewsletterPage] Newsletter not published:', slug, newsletter.status);
+            notFound();
+        }
+
+        console.log('[NewsletterPage] Newsletter found:', newsletter.id, newsletter.title);
+
+        // eslint-disable-next-line react-hooks/error-boundaries
+        return <NewsletterContent newsletter={newsletter} />;
+    } catch (error) {
+        console.error('[NewsletterPage] Error rendering newsletter:', error);
+        throw error; // Re-throw to be caught by error boundary
     }
-
-    return <NewsletterContent newsletter={newsletter} />;
 }

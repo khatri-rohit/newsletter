@@ -2,8 +2,9 @@
 // USER MANAGEMENT SERVICE
 // ==========================================
 
-import * as admin from "firebase-admin";
-import { z } from "zod";
+import * as admin from 'firebase-admin';
+import { z } from 'zod';
+import { getFirebaseAdmin } from '@/lib/firebase-admin';
 
 // ==========================================
 // VALIDATION SCHEMAS
@@ -14,8 +15,8 @@ export const UserSchema = z.object({
   email: z.string().email(),
   displayName: z.string().optional(),
   photoURL: z.string().url().optional(),
-  provider: z.enum(["google.com", "github.com", "password"]),
-  role: z.enum(["user", "admin"]).default("user"),
+  provider: z.enum(['google.com', 'github.com', 'password']),
+  role: z.enum(['user', 'admin']).default('user'),
   isSubscribed: z.boolean().default(true),
   createdAt: z.any(), // Firestore Timestamp
   updatedAt: z.any(), // Firestore Timestamp
@@ -34,11 +35,11 @@ export const SubscriberSchema = z.object({
   name: z.string().optional(),
   userId: z.string().optional(), // Link to users collection if authenticated
   subscribedAt: z.any(), // Firestore Timestamp
-  status: z.enum(["active", "unsubscribed", "bounced"]).default("active"),
-  source: z.enum(["website", "auth"]).default("website"),
+  status: z.enum(['active', 'unsubscribed', 'bounced']).default('active'),
+  source: z.enum(['website', 'auth']).default('website'),
   preferences: z
     .object({
-      frequency: z.enum(["daily", "weekly"]).default("daily"),
+      frequency: z.enum(['daily', 'weekly']).default('daily'),
       categories: z.array(z.string()).optional(),
     })
     .optional(),
@@ -57,9 +58,11 @@ export class UserService {
   private subscribersCollection: admin.firestore.CollectionReference;
 
   constructor() {
+    // Ensure Firebase Admin is initialized
+    getFirebaseAdmin();
     this.db = admin.firestore();
-    this.usersCollection = this.db.collection("users");
-    this.subscribersCollection = this.db.collection("subscribers");
+    this.usersCollection = this.db.collection('users');
+    this.subscribersCollection = this.db.collection('subscribers');
   }
 
   // ==========================================
@@ -74,7 +77,7 @@ export class UserService {
       const userDoc = await this.usersCollection.doc(uid).get();
       return userDoc.exists;
     } catch (error) {
-      console.error("Error checking user existence:", error);
+      console.error('Error checking user existence:', error);
       throw error;
     }
   }
@@ -90,7 +93,7 @@ export class UserService {
       }
       return userDoc.data() as User;
     } catch (error) {
-      console.error("Error getting user:", error);
+      console.error('Error getting user:', error);
       throw error;
     }
   }
@@ -100,10 +103,7 @@ export class UserService {
    */
   async getUserByEmail(email: string): Promise<User | null> {
     try {
-      const querySnapshot = await this.usersCollection
-        .where("email", "==", email)
-        .limit(1)
-        .get();
+      const querySnapshot = await this.usersCollection.where('email', '==', email).limit(1).get();
 
       if (querySnapshot.empty) {
         return null;
@@ -111,7 +111,7 @@ export class UserService {
 
       return querySnapshot.docs[0].data() as User;
     } catch (error) {
-      console.error("Error getting user by email:", error);
+      console.error('Error getting user by email:', error);
       throw error;
     }
   }
@@ -137,7 +137,7 @@ export class UserService {
         displayName: userData.displayName || null,
         photoURL: userData.photoURL || null,
         provider: userData.provider,
-        role: "user",
+        role: 'user',
         isSubscribed: true,
         createdAt: now,
         updatedAt: now,
@@ -159,7 +159,7 @@ export class UserService {
         lastLoginAt: new Date(),
       } as User;
     } catch (error) {
-      console.error("Error creating user:", error);
+      console.error('Error creating user:', error);
       throw error;
     }
   }
@@ -175,7 +175,7 @@ export class UserService {
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
       });
     } catch (error) {
-      console.error("Error updating user login:", error);
+      console.error('Error updating user login:', error);
       throw error;
     }
   }
@@ -183,7 +183,7 @@ export class UserService {
   /**
    * Update user role (for admin management)
    */
-  async updateUserRole(uid: string, role: "user" | "admin"): Promise<void> {
+  async updateUserRole(uid: string, role: 'user' | 'admin'): Promise<void> {
     try {
       await this.usersCollection.doc(uid).update({
         role,
@@ -193,7 +193,7 @@ export class UserService {
       // Also update Firebase Auth custom claims
       await admin.auth().setCustomUserClaims(uid, { role });
     } catch (error) {
-      console.error("Error updating user role:", error);
+      console.error('Error updating user role:', error);
       throw error;
     }
   }
@@ -208,14 +208,14 @@ export class UserService {
   async isSubscribed(email: string): Promise<boolean> {
     try {
       const querySnapshot = await this.subscribersCollection
-        .where("email", "==", email)
-        .where("status", "==", "active")
+        .where('email', '==', email)
+        .where('status', '==', 'active')
         .limit(1)
         .get();
 
       return !querySnapshot.empty;
     } catch (error) {
-      console.error("Error checking subscription:", error);
+      console.error('Error checking subscription:', error);
       throw error;
     }
   }
@@ -226,7 +226,7 @@ export class UserService {
   async getSubscriberByEmail(email: string): Promise<Subscriber | null> {
     try {
       const querySnapshot = await this.subscribersCollection
-        .where("email", "==", email)
+        .where('email', '==', email)
         .limit(1)
         .get();
 
@@ -236,7 +236,7 @@ export class UserService {
 
       return querySnapshot.docs[0].data() as Subscriber;
     } catch (error) {
-      console.error("Error getting subscriber:", error);
+      console.error('Error getting subscriber:', error);
       throw error;
     }
   }
@@ -248,7 +248,7 @@ export class UserService {
     email: string;
     name?: string;
     userId?: string;
-    source?: "website" | "auth";
+    source?: 'website' | 'auth';
   }): Promise<Subscriber> {
     try {
       // Check if already subscribed
@@ -256,8 +256,8 @@ export class UserService {
 
       if (existing) {
         // If previously unsubscribed, reactivate
-        if (existing.status !== "active") {
-          await this.updateSubscriberStatus(subscriberData.email, "active");
+        if (existing.status !== 'active') {
+          await this.updateSubscriberStatus(subscriberData.email, 'active');
         }
         return existing;
       }
@@ -268,10 +268,10 @@ export class UserService {
         name: subscriberData.name,
         userId: subscriberData.userId,
         subscribedAt: admin.firestore.FieldValue.serverTimestamp(),
-        status: "active",
-        source: subscriberData.source || "website",
+        status: 'active',
+        source: subscriberData.source || 'website',
         preferences: {
-          frequency: "daily",
+          frequency: 'daily',
           categories: [],
         },
       };
@@ -283,7 +283,7 @@ export class UserService {
         subscribedAt: new Date(),
       } as Subscriber;
     } catch (error) {
-      console.error("Error adding subscriber:", error);
+      console.error('Error adding subscriber:', error);
       throw error;
     }
   }
@@ -293,11 +293,11 @@ export class UserService {
    */
   async updateSubscriberStatus(
     email: string,
-    status: "active" | "unsubscribed" | "bounced",
+    status: 'active' | 'unsubscribed' | 'bounced'
   ): Promise<void> {
     try {
       const querySnapshot = await this.subscribersCollection
-        .where("email", "==", email)
+        .where('email', '==', email)
         .limit(1)
         .get();
 
@@ -305,7 +305,7 @@ export class UserService {
         await querySnapshot.docs[0].ref.update({ status });
       }
     } catch (error) {
-      console.error("Error updating subscriber status:", error);
+      console.error('Error updating subscriber status:', error);
       throw error;
     }
   }
@@ -315,13 +315,11 @@ export class UserService {
    */
   async getAllActiveSubscribers(): Promise<Subscriber[]> {
     try {
-      const querySnapshot = await this.subscribersCollection
-        .where("status", "==", "active")
-        .get();
+      const querySnapshot = await this.subscribersCollection.where('status', '==', 'active').get();
 
       return querySnapshot.docs.map((doc) => doc.data() as Subscriber);
     } catch (error) {
-      console.error("Error getting active subscribers:", error);
+      console.error('Error getting active subscribers:', error);
       throw error;
     }
   }
@@ -337,18 +335,9 @@ export class UserService {
   }> {
     try {
       const [activeSnap, unsubSnap, bouncedSnap] = await Promise.all([
-        this.subscribersCollection
-          .where("status", "==", "active")
-          .count()
-          .get(),
-        this.subscribersCollection
-          .where("status", "==", "unsubscribed")
-          .count()
-          .get(),
-        this.subscribersCollection
-          .where("status", "==", "bounced")
-          .count()
-          .get(),
+        this.subscribersCollection.where('status', '==', 'active').count().get(),
+        this.subscribersCollection.where('status', '==', 'unsubscribed').count().get(),
+        this.subscribersCollection.where('status', '==', 'bounced').count().get(),
       ]);
 
       const active = activeSnap.data().count;
@@ -362,7 +351,7 @@ export class UserService {
         total: active + unsubscribed + bounced,
       };
     } catch (error) {
-      console.error("Error getting subscriber stats:", error);
+      console.error('Error getting subscriber stats:', error);
       throw error;
     }
   }
@@ -405,7 +394,7 @@ export class UserService {
           email: authData.email,
           name: authData.displayName,
           userId: authData.uid,
-          source: "auth",
+          source: 'auth',
         });
 
         return {
@@ -414,7 +403,7 @@ export class UserService {
         };
       }
     } catch (error) {
-      console.error("Error handling user auth:", error);
+      console.error('Error handling user auth:', error);
       throw error;
     }
   }
