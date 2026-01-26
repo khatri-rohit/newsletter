@@ -60,13 +60,13 @@ const Footer = ({ classname }: { classname?: string }) => {
                                 href="https://x.com/rohitxdotdev"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center transition-all"
+                                className="h-8 w-10.5 sm:h-9 sm:w-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center transition-all"
                                 aria-label="Follow us on Twitter"
                             >
                                 <img
                                     src="/x.svg"
                                     alt="Follow us on Twitter"
-                                    className="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-80"
+                                    className="h-3 w-3 sm:h-3.5 sm:w-3.5 opacity-80"
                                     loading="lazy"
                                 />
                             </a>
@@ -74,7 +74,7 @@ const Footer = ({ classname }: { classname?: string }) => {
                                 href="https://www.linkedin.com/in/rohitkhatri302"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center transition-all"
+                                className="h-8 w-10.5 sm:h-9 sm:w-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center transition-all"
                                 aria-label="Connect on LinkedIn"
                             >
                                 <Linkedin className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-700" />
@@ -83,7 +83,7 @@ const Footer = ({ classname }: { classname?: string }) => {
                                 href="https://thisisrohit.dev"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="h-8 w-8 sm:h-9 sm:w-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center transition-all"
+                                className="h-8 w-10.5 sm:h-9 sm:w-9 rounded-full bg-slate-100 hover:bg-slate-200 active:scale-95 flex items-center justify-center transition-all"
                                 aria-label="Visit my website"
                             >
                                 <User className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-700" />
