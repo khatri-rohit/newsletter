@@ -41,7 +41,7 @@ export function UserMenu() {
 
     const subscriptionStatus = subscriptionData?.data ? {
         isSubscribed: subscriptionData.data.subscribed,
-        status: subscriptionData.data.status || (subscriptionData.data.subscribed ? 'active' : 'inactive'),
+        status: subscriptionData.data.subscribed ? 'active' : 'inactive',
     } : null;
 
     useEffect(() => {
