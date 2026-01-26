@@ -31,6 +31,19 @@ export const metadata: Metadata = {
   creator: "Low Noise",
   publisher: "Low Noise",
   metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'),
+  icons: {
+    icon: [
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
+    ],
+    other: [
+      { rel: 'mask-icon', url: '/lownoise.png' },
+    ],
+  },
+  manifest: '/site.webmanifest',
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -38,11 +51,13 @@ export const metadata: Metadata = {
     siteName: 'Low Noise',
     title: 'Low Noise - AI News, Simplified',
     description: 'Need-to-know AI news, minus the fluff—served bite-size, every day.',
+    images: [{ url: '/lownoise.png', width: 1200, height: 630, alt: 'Low Noise Logo' }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Low Noise - AI News, Simplified',
     description: 'Need-to-know AI news, minus the fluff—served bite-size, every day.',
+    images: ['/lownoise.png'],
   },
   robots: {
     index: true,
@@ -59,6 +74,14 @@ export const metadata: Metadata = {
     // Add your verification tokens here
     // google: 'your-google-verification-token',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Low Noise',
+  },
+  formatDetection: {
+    telephone: false,
+  },
 };
 
 export default function RootLayout({
@@ -71,6 +94,8 @@ export default function RootLayout({
       <head>
         <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com" />
         <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+        <meta name="theme-color" content="#ffffff" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body
         className={`${newsreader.variable} ${ibmPlexMono.variable} antialiased`}

@@ -4,6 +4,7 @@
 import { Linkedin, User } from 'lucide-react';
 import { NewsletterSubscribe } from './newsletter-subscribe';
 import Link from 'next/link';
+import Image from 'next/image';
 
 const Footer = ({ classname }: { classname?: string }) => {
     return (
@@ -13,11 +14,19 @@ const Footer = ({ classname }: { classname?: string }) => {
                 <div className={`grid grid-cols-1 sm:grid-cols-2 ${classname ? "lg:grid-cols-4" : "lg:grid-cols-3"} gap-5 lg:gap-12 mb-8`}>
                     {/* Left - Logo and Tagline */}
                     <div className="space-y-4">
-                        <div className="flex items-center gap-3">
-                            <span className="text-lg sm:text-xl font-bold">
+                        <Link href="/" className="flex items-center gap-3 w-fit group" aria-label="Low Noise Home">
+                            <div className="relative h-8 w-8 sm:h-9 sm:w-9 transition-transform">
+                                <Image
+                                    src="/lownoise.png"
+                                    alt="Low Noise Logo"
+                                    fill
+                                    className="object-contain"
+                                />
+                            </div>
+                            <span className="text-lg sm:text-xl font-bold text-slate-900 transition-colors">
                                 Low Noise
                             </span>
-                        </div>
+                        </Link>
                         <p className="text-sm text-slate-600 leading-relaxed max-w-xs">
                             Need-to-know AI news, minus the fluff—served bite-size, every day.
                         </p>
