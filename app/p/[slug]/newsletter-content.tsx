@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
 import Footer from '@/components/footer';
@@ -19,6 +20,7 @@ import {
 import { useAuth } from '@/lib/auth-context';
 import { toast } from 'sonner';
 import ScrollTop from '@/components/scroll-to-top';
+import { formatTimestamp, generateViewerId, formatNumber } from '@/lib/helpers';
 
 interface NewsletterContentProps {
     newsletter: Newsletter;
@@ -27,6 +29,45 @@ interface NewsletterContentProps {
 export function NewsletterContent({ newsletter }: NewsletterContentProps) {
     const router = useRouter();
     const { isAdmin } = useAuth();
+    const [viewCount, setViewCount] = useState(newsletter.views || 0);
+    const [isTracking, setIsTracking] = useState(false);
+
+    // Track newsletter view
+    useEffect(() => {
+        const trackView = async () => {
+            if (isTracking) return; // Prevent duplicate tracking
+            setIsTracking(true);
+
+            try {
+                const viewerId = generateViewerId();
+
+                // Call the API to increment views
+                const response = await fetch(`/api/newsletters/${newsletter.id}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        action: 'incrementViews',
+                        viewerId,
+                    }),
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    if (result.data?.counted && result.data?.totalViews) {
+                        setViewCount(result.data.totalViews);
+                    }
+                }
+            } catch (error) {
+                console.error('Error tracking view:', error);
+            }
+        };
+
+        // Track view after a 3-second delay to ensure it's a genuine read
+        const timer = setTimeout(trackView, 3000);
+        return () => clearTimeout(timer);
+    }, [newsletter.id, isTracking]);
 
     const handleShare = async () => {
         const url = window.location.href;
@@ -38,8 +79,12 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
                     text: newsletter?.excerpt,
                     url: url,
                 });
+                toast.success('Shared successfully!');
             } catch (err) {
-                console.error('Error sharing:', err);
+                // User cancelled or error occurred
+                if ((err as Error).name !== 'AbortError') {
+                    console.error('Error sharing:', err);
+                }
             }
         } else {
             // Fallback: copy to clipboard
@@ -53,25 +98,7 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
     };
 
     const formatDate = (timestamp: unknown): string => {
-        if (!timestamp) return '';
-        let date: Date;
-
-        if (timestamp instanceof Date) {
-            date = timestamp;
-        } else if (typeof timestamp === 'string') {
-            // Handle ISO string from serialization
-            date = new Date(timestamp);
-        } else if (typeof timestamp === 'object' && timestamp !== null && 'toDate' in timestamp) {
-            date = (timestamp as { toDate: () => Date }).toDate();
-        } else if (typeof timestamp === 'object' && timestamp !== null && '_seconds' in timestamp) {
-            date = new Date((timestamp as { _seconds: number })._seconds * 1000);
-        } else if (typeof timestamp === 'object' && timestamp !== null && 'seconds' in timestamp) {
-            date = new Date((timestamp as { seconds: number }).seconds * 1000);
-        } else {
-            return '';
-        }
-
-        return date.toLocaleDateString('en-US', {
+        return formatTimestamp(timestamp, {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
@@ -79,11 +106,11 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-slate-50">
+        <div className="flex flex-col bg-slate-50">
             <ScrollTop />
             <Header classname="max-w-5xl" />
 
-            <main className="px-2 md:px-1 flex-1 container mx-auto py-8 pt-20 max-w-5xl">
+            <main className="min-h-screen px-2 md:px-1 flex-1 container mx-auto py-8 pt-20 max-w-5xl">
                 {/* Breadcrumb Navigation */}
                 <Breadcrumb className="mb-6">
                     <BreadcrumbList>
@@ -159,10 +186,10 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
                                         <Clock className="h-4 w-4" aria-hidden="true" />
                                         {newsletter.metadata.readTime} min read
                                     </span>
-                                    {isAdmin && newsletter.views !== undefined && (
+                                    {isAdmin && viewCount > 0 && (
                                         <span className="flex items-center gap-1.5">
                                             <Eye className="h-4 w-4" aria-hidden="true" />
-                                            {(newsletter.views || 0).toLocaleString()} views
+                                            {formatNumber(viewCount)} views
                                         </span>
                                     )}
                                 </>
@@ -188,11 +215,11 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
 
                         {/* Share Section */}
                         <div className="flex items-center justify-between">
-                            {isAdmin && newsletter.views !== undefined && (
+                            {isAdmin && viewCount > 0 && (
                                 <div className="flex items-center gap-2">
                                     <Eye className="h-5 w-5 text-gray-400" aria-hidden="true" />
                                     <span className="text-gray-600">
-                                        {(newsletter.views || 0).toLocaleString()} views
+                                        {formatNumber(viewCount)} views
                                     </span>
                                 </div>
                             )}
