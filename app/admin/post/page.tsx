@@ -57,8 +57,8 @@ function AdminPostContent() {
         tags: [],
         status: 'draft',
     });
-    console.log(isAdmin)
-    console.log(user)
+    // console.log(isAdmin)
+    // console.log(user)
     // Check if user is admin
     useEffect(() => {
         if (!loading && !user) {
@@ -95,13 +95,24 @@ function AdminPostContent() {
 
     const handleThumbnailUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (!file) return;
+        if (!file) {
+            console.log('[Upload] No file selected');
+            return;
+        }
+
+        console.log('[Upload] File selected:', {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+        });
 
         try {
             const formDataToUpload = new FormData();
             formDataToUpload.append('file', file);
 
+            // console.log('[Upload] FormData created, uploading...');
             const result = await uploadImage(formDataToUpload).unwrap();
+            // console.log('[Upload] Result:', result);
 
             if (result.success && result.data) {
                 setFormData((prev) => ({ ...prev, thumbnail: result.data!.url }));
@@ -110,6 +121,7 @@ function AdminPostContent() {
                 throw new Error(result.error || 'Upload failed');
             }
         } catch (error) {
+            console.error('[Upload] Error:', error);
             toast.error(error instanceof Error ? error.message : 'Failed to upload thumbnail');
         }
     };

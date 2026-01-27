@@ -72,20 +72,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setUser(user);
 
             if (user) {
-                // Store Firebase token in localStorage for API calls
+                // Check admin status
                 try {
-                    const token = await user.getIdToken();
-                    localStorage.setItem('firebase-token', token);
-
-                    // Check admin status
                     const idTokenResult = await user.getIdTokenResult();
                     setIsAdmin(idTokenResult.claims.role === "admin");
+                    console.log('[Auth] User admin status:', idTokenResult.claims.role === "admin");
                 } catch (error) {
-                    console.error('Error getting user token:', error);
+                    console.error('[Auth] Error getting user token:', error);
+                    setIsAdmin(false);
                 }
             } else {
-                // Clear token when user logs out
-                localStorage.removeItem('firebase-token');
                 setIsAdmin(false);
             }
 
@@ -100,12 +96,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
 
-            // Store token immediately
-            const token = await result.user.getIdToken();
-            localStorage.setItem('firebase-token', token);
-
             // Notify webhook about the authentication
             await notifyAuthWebhook(result.user, 'google.com');
+
+            console.log('[Auth] Google sign-in successful');
         } catch (error) {
             console.error('Error signing in with Google:', error);
             throw error;
@@ -117,12 +111,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const provider = new GithubAuthProvider();
             const result = await signInWithPopup(auth, provider);
 
-            // Store token immediately
-            const token = await result.user.getIdToken();
-            localStorage.setItem('firebase-token', token);
-
             // Notify webhook about the authentication
             await notifyAuthWebhook(result.user, 'github.com');
+
+            console.log('[Auth] GitHub sign-in successful');
         } catch (error) {
             console.error('Error signing in with Github:', error);
             throw error;
@@ -131,9 +123,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signOut = async () => {
         try {
-            // Clear token before signing out
-            localStorage.removeItem('firebase-token');
             await firebaseSignOut(auth);
+            console.log('[Auth] Sign-out successful');
         } catch (error) {
             console.error('Error signing out:', error);
             throw error;

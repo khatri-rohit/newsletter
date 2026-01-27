@@ -25,7 +25,7 @@ export interface SubscriptionData {
 
 export interface UploadImageResponse {
   url: string;
-  key: string;
+  filename: string;
 }
 
 // Define the API slice
@@ -33,14 +33,29 @@ export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: '/api',
-    prepareHeaders: (headers) => {
-      // Add Firebase auth token if available
+    prepareHeaders: async (headers, { endpoint }) => {
+      // Get fresh Firebase auth token for each request
       if (typeof window !== 'undefined') {
-        const token = localStorage.getItem('firebase-token');
-        if (token) {
-          headers.set('Authorization', `Bearer ${token}`);
+        try {
+          // Dynamically import firebase/auth to avoid SSR issues
+          const { auth } = await import('./firebase');
+          const user = auth.currentUser;
+
+          if (user) {
+            // Force refresh token to ensure it's valid
+            const token = await user.getIdToken(true);
+            headers.set('Authorization', `Bearer ${token}`);
+            console.log(`[API] Fresh token added to ${endpoint} request`);
+          } else {
+            console.warn('[API] No authenticated user found');
+          }
+        } catch (error) {
+          console.error('[API] Error getting auth token:', error);
         }
       }
+
+      // Don't set Content-Type for FormData - let browser set it with boundary
+      // RTK Query automatically handles this when body is FormData
       return headers;
     },
   }),
