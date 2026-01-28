@@ -35,7 +35,7 @@ export function getFirebaseAdmin(): admin.app.App {
       throw new Error('FIREBASE_PRIVATE_KEY is not set');
     }
 
-    console.log('[Firebase Admin] Initializing with project:', projectId);
+    // console.log('[Firebase Admin] Initializing with project:', projectId);
 
     // Initialize Firebase Admin
     firebaseAdmin = admin.initializeApp({
@@ -46,7 +46,7 @@ export function getFirebaseAdmin(): admin.app.App {
       }),
     });
 
-    console.log('[Firebase Admin] Initialized successfully');
+    // console.log('[Firebase Admin] Initialized successfully');
     return firebaseAdmin;
   } catch (error) {
     console.error('[Firebase Admin] Initialization failed:', {

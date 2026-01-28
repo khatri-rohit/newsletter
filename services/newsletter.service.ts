@@ -65,8 +65,12 @@ export class NewsletterService {
         },
       };
 
-      // Only add scheduledFor if it exists (avoid undefined)
-      if (input.scheduledFor) {
+      // Only add scheduledFor if it exists and is a valid Date (avoid undefined)
+      if (
+        input.scheduledFor &&
+        input.scheduledFor instanceof Date &&
+        !isNaN(input.scheduledFor.getTime())
+      ) {
         newsletterData.scheduledFor = admin.firestore.Timestamp.fromDate(input.scheduledFor);
       }
 
@@ -105,10 +109,19 @@ export class NewsletterService {
         throw new Error('Newsletter not found');
       }
 
-      const updates: Partial<Newsletter> = {
+      const updates: any = {
         ...updateData,
         updatedAt: admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp,
       };
+
+      // Handle scheduledFor: convert to Timestamp or delete if null
+      if (updateData.scheduledFor !== undefined) {
+        if (updateData.scheduledFor === null) {
+          updates.scheduledFor = admin.firestore.FieldValue.delete();
+        } else {
+          updates.scheduledFor = admin.firestore.Timestamp.fromDate(updateData.scheduledFor);
+        }
+      }
 
       // Update slug if title changed
       if (updateData.title) {
@@ -133,7 +146,12 @@ export class NewsletterService {
           admin.firestore.FieldValue.serverTimestamp() as admin.firestore.Timestamp;
       }
 
-      await docRef.update(updates);
+      // Filter out undefined values
+      const filteredUpdates = Object.fromEntries(
+        Object.entries(updates).filter(([, value]) => value !== undefined)
+      );
+
+      await docRef.update(filteredUpdates);
 
       const updatedDoc = await docRef.get();
       return {
@@ -258,7 +276,7 @@ export class NewsletterService {
     try {
       // First, get the newsletter to extract image URLs
       const doc = await this.newslettersCollection.doc(id).get();
-      
+
       if (!doc.exists) {
         throw new Error('Newsletter not found');
       }
@@ -271,7 +289,9 @@ export class NewsletterService {
       // Delete the newsletter document
       await this.newslettersCollection.doc(id).delete();
 
-      console.log(`[NewsletterService] Successfully deleted newsletter ${id} and cleaned up resources`);
+      console.log(
+        `[NewsletterService] Successfully deleted newsletter ${id} and cleaned up resources`
+      );
     } catch (error) {
       console.error('Error deleting newsletter:', error);
       throw new Error('Failed to delete newsletter');
@@ -309,8 +329,8 @@ export class NewsletterService {
       // Filter URLs to only include images from our R2 storage
       // Expected format: https://pub-80b14eac0e644afab28d83edb15a62be.r2.dev/newsletter-images/...
       const r2ImageKeys = imageUrls
-        .filter(url => url.includes('.r2.dev/') || url.includes('r2.cloudflarestorage.com/'))
-        .map(url => {
+        .filter((url) => url.includes('.r2.dev/') || url.includes('r2.cloudflarestorage.com/'))
+        .map((url) => {
           // Extract the key (path after the domain)
           try {
             const urlObj = new URL(url);
@@ -322,11 +342,13 @@ export class NewsletterService {
         .filter((key): key is string => key !== null);
 
       if (r2ImageKeys.length > 0) {
-        console.log(`[NewsletterService] Deleting ${r2ImageKeys.length} images from R2 for newsletter ${newsletter.id}`);
-        
+        console.log(
+          `[NewsletterService] Deleting ${r2ImageKeys.length} images from R2 for newsletter ${newsletter.id}`
+        );
+
         // Import R2Service dynamically to avoid circular dependencies
         const { DeleteObjectsCommand, S3Client } = await import('@aws-sdk/client-s3');
-        
+
         // Initialize R2 client
         const r2Client = new S3Client({
           region: 'auto',
@@ -344,11 +366,11 @@ export class NewsletterService {
         const batchSize = 1000;
         for (let i = 0; i < r2ImageKeys.length; i += batchSize) {
           const batch = r2ImageKeys.slice(i, i + batchSize);
-          
+
           const command = new DeleteObjectsCommand({
             Bucket: bucketName,
             Delete: {
-              Objects: batch.map(key => ({ Key: key })),
+              Objects: batch.map((key) => ({ Key: key })),
               Quiet: true,
             },
           });
@@ -389,6 +411,42 @@ export class NewsletterService {
     } catch (error) {
       console.error('Error publishing newsletter:', error);
       throw new Error('Failed to publish newsletter');
+    }
+  }
+
+  /**
+   * Get all scheduled newsletters that are due for publishing
+   * Returns newsletters with status 'scheduled' and scheduledFor <= current time
+   */
+  async getScheduledNewslettersDue(): Promise<Newsletter[]> {
+    try {
+      const now = admin.firestore.Timestamp.now();
+
+      console.log('[NewsletterService] Fetching scheduled newsletters due for publishing...');
+
+      const snapshot = await this.newslettersCollection
+        .where('status', '==', 'scheduled')
+        .where('scheduledFor', '<=', now)
+        .orderBy('scheduledFor', 'asc')
+        .get();
+
+      const newsletters: Newsletter[] = [];
+
+      snapshot.forEach((doc) => {
+        newsletters.push({
+          id: doc.id,
+          ...doc.data(),
+        } as Newsletter);
+      });
+
+      console.log(
+        `[NewsletterService] Found ${newsletters.length} scheduled newsletters due for publishing`
+      );
+
+      return newsletters;
+    } catch (error) {
+      console.error('[NewsletterService] Error fetching scheduled newsletters:', error);
+      throw new Error('Failed to fetch scheduled newsletters');
     }
   }
 

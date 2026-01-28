@@ -42,6 +42,7 @@ interface NewsletterFormData {
     thumbnail: string;
     tags: string[];
     status: 'draft' | 'published' | 'scheduled';
+    scheduledFor?: string; // ISO date string for datetime-local input
 }
 
 function AdminPostContent() {
@@ -75,6 +76,7 @@ function AdminPostContent() {
         thumbnail: '',
         tags: [],
         status: 'draft',
+        scheduledFor: undefined,
     });
 
     // Sync newsletterId from URL params to state when it changes
@@ -92,6 +94,7 @@ function AdminPostContent() {
                     thumbnail: '',
                     tags: [],
                     status: 'draft',
+                    scheduledFor: undefined,
                 });
             }
         }
@@ -107,6 +110,27 @@ function AdminPostContent() {
                 contentLength: newsletter.content?.length || 0,
             });
 
+            // Convert scheduledFor to datetime-local format if exists
+            let scheduledForValue: string | undefined;
+            if (newsletter.scheduledFor) {
+                try {
+                    let date: Date;
+                    if (typeof newsletter.scheduledFor === 'object' && 'seconds' in newsletter.scheduledFor) {
+                        // Firestore Timestamp
+                        date = new Date(newsletter.scheduledFor.seconds * 1000);
+                    } else if (typeof newsletter.scheduledFor === 'string') {
+                        date = new Date(newsletter.scheduledFor);
+                    } else {
+                        date = newsletter.scheduledFor as Date;
+                    }
+                    // Format for datetime-local input: YYYY-MM-DDTHH:mm
+                    scheduledForValue = date.toISOString().slice(0, 16);
+                } catch (error) {
+                    console.error('[Admin] Error parsing scheduledFor:', error);
+                    scheduledForValue = undefined;
+                }
+            }
+
             setFormData({
                 title: newsletter.title || '',
                 content: newsletter.content || '',
@@ -114,6 +138,7 @@ function AdminPostContent() {
                 thumbnail: newsletter.thumbnail || '',
                 tags: newsletter.tags || [],
                 status: newsletter.status || 'draft',
+                scheduledFor: scheduledForValue,
             });
 
             console.log('[Admin] Loaded existing newsletter:', newsletter.id);
@@ -213,19 +238,22 @@ function AdminPostContent() {
         try {
             let result;
 
+            // Prepare data with scheduledFor converted to Date if exists
+            const dataToSave = {
+                ...formData,
+                status: 'draft' as const,
+                scheduledFor: formData.scheduledFor ? new Date(formData.scheduledFor) : undefined,
+            };
+
             if (currentNewsletterId) {
                 // Update existing draft
                 result = await updateNewsletter({
                     id: currentNewsletterId,
-                    ...formData,
-                    status: 'draft',
+                    ...dataToSave,
                 }).unwrap();
             } else {
                 // Create new draft
-                result = await createNewsletter({
-                    ...formData,
-                    status: 'draft',
-                }).unwrap();
+                result = await createNewsletter(dataToSave).unwrap();
 
                 // Store the ID for future updates
                 if (result.success && result.data?.id) {
@@ -246,6 +274,68 @@ function AdminPostContent() {
         }
     };
 
+    const handleSchedule = async () => {
+        if (!formData.title || !formData.content || !formData.excerpt) {
+            toast.error('Title, content, and excerpt are required for scheduling');
+            return;
+        }
+
+        if (!formData.scheduledFor) {
+            toast.error('Please select a date and time for scheduling');
+            return;
+        }
+
+        const scheduledDate = new Date(formData.scheduledFor);
+        const now = new Date();
+
+        if (scheduledDate <= now) {
+            toast.error('Scheduled date must be in the future');
+            return;
+        }
+
+        setPublishing(true);
+        try {
+            let result;
+
+            const dataToSave = {
+                ...formData,
+                status: 'scheduled' as const,
+                scheduledFor: scheduledDate,
+            };
+
+            if (currentNewsletterId) {
+                // Update existing newsletter to scheduled
+                result = await updateNewsletter({
+                    id: currentNewsletterId,
+                    ...dataToSave,
+                }).unwrap();
+            } else {
+                // Create new scheduled newsletter
+                result = await createNewsletter(dataToSave).unwrap();
+            }
+
+            if (result.success) {
+                toast.success('Newsletter scheduled successfully! 📅', {
+                    description: `Will be published on ${scheduledDate.toLocaleString()}`,
+                    className: 'text-gray-800!',
+                });
+
+                // Store the newsletter ID if it's a new one
+                if (!currentNewsletterId && result.data?.id) {
+                    setCurrentNewsletterId(result.data.id);
+                    router.push(`/admin/post?id=${result.data.id}`);
+                }
+            } else {
+                throw new Error(result.error || 'Failed to schedule newsletter');
+            }
+        } catch (error) {
+            console.error('[Admin] Schedule error:', error);
+            toast.error(error instanceof Error ? error.message : 'Failed to schedule newsletter');
+        } finally {
+            setPublishing(false);
+        }
+    };
+
     const handlePublish = async () => {
         if (!formData.title || !formData.content || !formData.excerpt) {
             toast.error('Title, content, and excerpt are required for publishing');
@@ -256,19 +346,21 @@ function AdminPostContent() {
         try {
             let result;
 
+            const dataToSave = {
+                ...formData,
+                status: 'published' as const,
+                scheduledFor: undefined, // Clear scheduledFor when publishing immediately
+            };
+
             if (currentNewsletterId) {
                 // Update existing draft to published
                 result = await updateNewsletter({
                     id: currentNewsletterId,
-                    ...formData,
-                    status: 'published',
+                    ...dataToSave,
                 }).unwrap();
             } else {
                 // Create new published newsletter
-                result = await createNewsletter({
-                    ...formData,
-                    status: 'published',
-                }).unwrap();
+                result = await createNewsletter(dataToSave).unwrap();
             }
 
             if (result.success) {
@@ -376,12 +468,21 @@ function AdminPostContent() {
                         Preview
                     </Button>
                     <Button
+                        onClick={handleSchedule}
+                        disabled={saving || publishing || sendingEmails}
+                        variant="outline"
+                        className="bg-linear-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-xs sm:text-sm flex-1 sm:flex-none min-w-25"
+                    >
+                        <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                        {publishing ? 'Scheduling...' : 'Schedule'}
+                    </Button>
+                    <Button
                         onClick={handlePublish}
                         disabled={saving || publishing || sendingEmails}
                         className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xs sm:text-sm flex-1 sm:flex-none min-w-25"
                     >
                         <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
-                        {publishing ? 'Publishing...' : 'Publish'}
+                        {publishing ? 'Publishing...' : 'Publish Now'}
                     </Button>
                     {formData.status === 'published' && currentNewsletterId && (
                         <Button
@@ -520,6 +621,42 @@ function AdminPostContent() {
                                             </button>
                                         </Badge>
                                     ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Schedule Date/Time */}
+                        <div className="space-y-2">
+                            <Label htmlFor="scheduledFor">
+                                <Calendar className="h-4 w-4 inline mr-2" />
+                                Schedule Publication (Optional)
+                            </Label>
+                            <Input
+                                id="scheduledFor"
+                                type="datetime-local"
+                                value={formData.scheduledFor || ''}
+                                onChange={(e) =>
+                                    setFormData((prev) => ({ ...prev, scheduledFor: e.target.value }))
+                                }
+                                min={new Date().toISOString().slice(0, 16)}
+                                className="text-sm sm:text-base"
+                            />
+                            <p className="text-xs sm:text-sm text-gray-500">
+                                {formData.scheduledFor
+                                    ? `Will be published automatically at ${new Date(formData.scheduledFor).toLocaleString()}`
+                                    : 'Leave empty to publish immediately or use Schedule button'}
+                            </p>
+                            {formData.status === 'scheduled' && formData.scheduledFor && (
+                                <div className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                    <Calendar className="h-4 w-4 text-amber-600" />
+                                    <div className="text-sm">
+                                        <p className="font-medium text-amber-900">
+                                            Scheduled for {new Date(formData.scheduledFor).toLocaleString()}
+                                        </p>
+                                        <p className="text-amber-700">
+                                            This newsletter will be automatically published and sent to subscribers at 9:00 AM on the scheduled date.
+                                        </p>
+                                    </div>
                                 </div>
                             )}
                         </div>

@@ -70,9 +70,15 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
     const { id } = await params;
     const body = await request.json();
 
+    // Convert scheduledFor from string to Date if present
+    const updateData = { ...body };
+    if (body.scheduledFor !== undefined) {
+      updateData.scheduledFor = body.scheduledFor ? new Date(body.scheduledFor) : null;
+    }
+
     const newsletter = await newsletterService.updateNewsletter({
       id,
-      ...body,
+      ...updateData,
     });
 
     return NextResponse.json({

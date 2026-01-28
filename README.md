@@ -54,6 +54,19 @@ This application follows strict anti-"AI slop" principles:
 
 📚 **Full Documentation**: See [docs/EMAIL_SYSTEM.md](docs/EMAIL_SYSTEM.md) and [docs/PRE_DEPLOYMENT.md](docs/PRE_DEPLOYMENT.md)
 
+### ⏰ Scheduled Newsletter Publishing (Cron Jobs)
+
+- ✅ **Automated Publishing**: Scheduled newsletters are automatically published at 9:00 AM daily
+- ✅ **Vercel Cron Jobs**: Serverless cron job runs daily to check for scheduled newsletters
+- ✅ **Smart Scheduling**: Admin can schedule newsletters for future publication with date/time picker
+- ✅ **Email Delivery**: Automatically sends emails to all subscribers when scheduled newsletter is published
+- ✅ **Comprehensive Logging**: Detailed logs with correlation IDs for monitoring and debugging
+- ✅ **Error Recovery**: Graceful error handling with retry logic for failed deliveries
+- ✅ **Status Tracking**: Real-time status updates for scheduled, published, and delivered newsletters
+- ✅ **Secure Authorization**: Cron endpoint protected with secret token
+
+📚 **Full Documentation**: See [docs/CRON_JOBS.md](docs/CRON_JOBS.md)
+
 ### UI Components
 
 - ✅ Production-grade shadcn/ui components
@@ -106,6 +119,7 @@ newsletter/
 │   └── user.service.ts            # User & subscriber management
 ├── docs/
 │   ├── EMAIL_SYSTEM.md            # Email system documentation
+│   ├── CRON_JOBS.md               # Scheduled publishing documentation
 │   └── PRE_DEPLOYMENT.md          # Deployment checklist
 ├── public/
 │   └── lownoise.png               # Logo for emails
@@ -125,14 +139,18 @@ newsletter/
    Copy the environment template and configure:
 
    ```bash
-   # See ENV_TEMPLATE.md for all available options
+   # Copy the example file
+   cp .env.example .env.local
+
+   # Edit .env.local with your credentials
+   # See .env.example for all available options
    ```
 
-   **Required for Email Notifications**:
-   - `GMAIL_HOST`: SMTP server (e.g., smtp.gmail.com)
-   - `GMAIL_USER`: Your email address
-   - `GMAIL_PASSWORD`: App password or SMTP password
-   - `NEXT_PUBLIC_APP_URL`: Your application URL
+   **Required Environment Variables**:
+   - `FIREBASE_*`: Firebase Admin credentials
+   - `GMAIL_*`: Email service configuration
+   - `CRON_SECRET`: Secret token for cron job authorization (generate with: `openssl rand -hex 32`)
+   - `NEXT_PUBLIC_BASE_URL`: Your application URL
 
    📚 **Setup Guide**: See [docs/PRE_DEPLOYMENT.md](docs/PRE_DEPLOYMENT.md) for detailed configuration
 

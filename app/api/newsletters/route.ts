@@ -101,7 +101,13 @@ export async function POST(request: NextRequest) {
       status: body.status,
     });
 
-    const newsletter = await newsletterService.createNewsletter(body, {
+    // Convert scheduledFor from string to Date if present
+    const newsletterData = {
+      ...body,
+      scheduledFor: body.scheduledFor ? new Date(body.scheduledFor) : undefined,
+    };
+
+    const newsletter = await newsletterService.createNewsletter(newsletterData, {
       uid: decodedToken.uid,
       email: decodedToken.email!,
       displayName: decodedToken.name,
