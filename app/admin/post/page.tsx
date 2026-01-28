@@ -74,10 +74,36 @@ function AdminPostContent() {
         status: 'draft',
     });
 
+    // Sync newsletterId from URL params to state when it changes
+    useEffect(() => {
+        if (newsletterId !== currentNewsletterId) {
+            setCurrentNewsletterId(newsletterId);
+            console.log('[Admin] Newsletter ID changed:', newsletterId);
+
+            // Reset form when switching newsletters
+            if (!newsletterId) {
+                setFormData({
+                    title: '',
+                    content: '',
+                    excerpt: '',
+                    thumbnail: '',
+                    tags: [],
+                    status: 'draft',
+                });
+            }
+        }
+    }, [newsletterId, currentNewsletterId]);
+
     // Load existing newsletter if ID is provided
     useEffect(() => {
         if (existingNewsletter?.data) {
             const newsletter = existingNewsletter.data;
+            console.log('[Admin] Loading newsletter data:', {
+                id: newsletter.id,
+                title: newsletter.title,
+                contentLength: newsletter.content?.length || 0,
+            });
+
             setFormData({
                 title: newsletter.title || '',
                 content: newsletter.content || '',
@@ -86,6 +112,7 @@ function AdminPostContent() {
                 tags: newsletter.tags || [],
                 status: newsletter.status || 'draft',
             });
+
             console.log('[Admin] Loaded existing newsletter:', newsletter.id);
         }
     }, [existingNewsletter]);
@@ -453,6 +480,7 @@ function AdminPostContent() {
                         <div className="space-y-2">
                             <Label>Newsletter Content *</Label>
                             <RichTextEditor
+                                key={currentNewsletterId || 'new'}
                                 content={formData.content}
                                 onChange={(content: string) =>
                                     setFormData((prev) => ({ ...prev, content }))

@@ -30,7 +30,7 @@ import {
     AlignRight,
     AlignJustify,
 } from 'lucide-react';
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
@@ -367,6 +367,21 @@ export function RichTextEditor({ content, onChange, placeholder }: RichTextEdito
             },
         },
     });
+
+    // Update editor content when the content prop changes
+    useEffect(() => {
+        if (editor && content !== editor.getHTML()) {
+            const { from, to } = editor.state.selection;
+            editor.commands.setContent(content, false);
+
+            // Restore cursor position if possible
+            try {
+                editor.commands.setTextSelection({ from, to });
+            } catch {
+                // If restoring position fails, just continue
+            }
+        }
+    }, [content, editor]);
 
     return (
         <div className="border border-gray-200 rounded-lg overflow-hidden">
