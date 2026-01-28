@@ -141,7 +141,7 @@ Curator, The Low Noise
                       <div style="margin-bottom: 20px;">
                         <a href="${baseUrl}" style="color: #00ff41; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ SITE ]</a>
                         <span style="color: #333;">|</span>
-                        <a href="${baseUrl}/api/user/subscription?action=unsubscribe" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ UNSUBSCRIBE ]</a>
+                        <a href="${baseUrl}/api/user/subscription?action=unsubscribe&email=${encodeURIComponent(email)}" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ UNSUBSCRIBE ]</a>
                       </div>
                       <p style="margin: 0; font-size: 10px; color: #444; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;">
                         © 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
@@ -198,7 +198,7 @@ THE LOW NOISE
 
 Links:
 Site: ${baseUrl}
-Unsubscribe: ${baseUrl}/api/user/subscription?action=unsubscribe
+Unsubscribe: ${baseUrl}/api/user/subscription?action=unsubscribe&email=${encodeURIComponent(email)}
 
 © 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
       `,
@@ -315,6 +315,7 @@ Curator, The Low Noise
                       <div style="margin-bottom: 20px;">
                         <a href="${baseUrl}" style="color: #00ff41; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ SITE ]</a>
                         <span style="color: #333;">|</span>
+                        <a href="${baseUrl}/api/user/subscription?action=unsubscribe&email=${encodeURIComponent(email)}" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ UNSUBSCRIBE ]</a>
                       </div>
                       <p style="margin: 0; font-size: 10px; color: #444; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;">
                         © 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
@@ -365,6 +366,7 @@ THE LOW NOISE
 
 Links:
 Site: ${baseUrl}
+Unsubscribe: ${baseUrl}/api/user/subscription?action=unsubscribe&email=${encodeURIComponent(email)}
 
 © 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
       `,

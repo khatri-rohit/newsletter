@@ -298,12 +298,15 @@ export class EmailQueueService {
 
       console.log(`[EmailQueue] Found ${subscribers.length} active subscribers`);
 
-      // Generate email content
-      const { subject, htmlContent, textContent } = await this.generateNewsletterEmail(newsletter);
-
-      // Add all subscribers to queue
+      // Add all subscribers to queue with personalized content
       const maxRetries = options.maxRetries || 3;
       for (const subscriber of subscribers) {
+        // Generate personalized email content for each recipient (for unsubscribe link)
+        const { subject, htmlContent, textContent } = await this.generateNewsletterEmail(
+          newsletter,
+          subscriber.email
+        );
+
         this.addToQueue({
           recipient: {
             email: subscriber.email,
@@ -381,7 +384,10 @@ export class EmailQueueService {
   /**
    * Generate newsletter email content
    */
-  private async generateNewsletterEmail(newsletter: Newsletter): Promise<{
+  private async generateNewsletterEmail(
+    newsletter: Newsletter,
+    recipientEmail?: string
+  ): Promise<{
     subject: string;
     htmlContent: string;
     textContent: string;
@@ -576,7 +582,7 @@ Reply to this transmission. Human on the other end.
                     <div style="margin-bottom: 20px;">
                       <a href="${baseUrl}" style="color: #00ff41; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ SITE ]</a>
                       <span style="color: #333;">|</span>
-                      <a href="${baseUrl}/api/user/subscription?action=unsubscribe" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ UNSUBSCRIBE ]</a>
+                      <a href="${baseUrl}/api/user/subscription?action=unsubscribe&email=${encodeURIComponent(recipientEmail || '')}" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ UNSUBSCRIBE ]</a>
                       <span style="color: #333;">|</span>
                       <a href="${baseUrl}/api/user/subscription?action=preferences" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ SETTINGS ]</a>
                     </div>
@@ -642,8 +648,7 @@ Curated AI news without the noise
 
 LINKS:
 Site: ${baseUrl}
-Unsubscribe: ${baseUrl}/api/user/subscription?action=unsubscribe
-Settings: ${baseUrl}/api/user/subscription?action=preferences
+Unsubscribe: ${baseUrl}/api/user/subscription?action=unsubscribe&email=${encodeURIComponent(recipientEmail || '')}
 
 © 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
     `;
