@@ -2,7 +2,7 @@
 /* eslint-disable @next/next/no-img-element */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/lib/auth-context';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { RichTextEditor } from '@/components/rich-text-editor';
@@ -562,6 +562,8 @@ function AdminPostContent() {
 
 export default function AdminPostPage() {
     return (
-        <AdminPostContent />
+        <Suspense fallback={<LoadingScreen />}>
+            <AdminPostContent />
+        </Suspense>
     );
 }
