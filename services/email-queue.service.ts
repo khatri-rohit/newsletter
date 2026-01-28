@@ -386,7 +386,7 @@ export class EmailQueueService {
     htmlContent: string;
     textContent: string;
   }> {
-    const subject = `📰 ${newsletter.title} - The Low Noise`;
+    const subject = `� ${newsletter.title}`;
 
     // Extract plain text preview from HTML content (first 200 chars)
     const textPreview =
@@ -403,144 +403,185 @@ export class EmailQueueService {
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>${newsletter.title}</title>
+        <style>
+          @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Mono:wght@400;700&display=swap');
+        </style>
       </head>
-      <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f9fafb; padding: 40px 20px;">
+      <body style="margin: 0; padding: 0; font-family: 'Space Mono', 'Courier New', monospace; background: linear-gradient(165deg, #000 0%, #1a1a1a 50%, #000 100%);">
+        <!-- Noise texture overlay -->
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.03; pointer-events: none; background-image: url('data:image/svg+xml,%3Csvg viewBox=\"0 0 200 200\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cfilter id=\"noise\"%3E%3CfeTurbulence type=\"fractalNoise\" baseFrequency=\"0.9\" numOctaves=\"4\" stitchTiles=\"stitch\"/%3E%3C/filter%3E%3Crect width=\"100%25\" height=\"100%25\" filter=\"url(%23noise)\"/%3E%3C/svg%3E');"></div>
+        
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 60px 20px;">
           <tr>
             <td align="center">
-              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07); overflow: hidden;">
+              <!-- Main content container -->
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 680px; background: #0a0a0a; border: 1px solid #00ff41; position: relative; box-shadow: 0 0 40px rgba(0, 255, 65, 0.15), inset 0 0 60px rgba(0, 0, 0, 0.5);">
                 
-                <!-- Header with Logo -->
+                <!-- Glowing corner accents -->
                 <tr>
-                  <td style="padding: 40px 40px 30px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                    <img src="${baseUrl}/lownoise.png" alt="The Low Noise" style="width: 120px; height: auto; margin-bottom: 16px;" />
-                    <h1 style="margin: 0; font-size: 24px; font-weight: 600; color: #ffffff; text-shadow: 0 2px 4px rgba(0,0,0,0.1);">The Low Noise</h1>
-                    <p style="margin: 8px 0 0; font-size: 14px; color: #e0e7ff; font-weight: 300;">Your Daily AI Intelligence</p>
+                  <td>
+                    <div style="position: absolute; top: -2px; left: -2px; width: 40px; height: 40px; border-top: 3px solid #00ff41; border-left: 3px solid #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.7);"></div>
+                    <div style="position: absolute; top: -2px; right: -2px; width: 40px; height: 40px; border-top: 3px solid #00ff41; border-right: 3px solid #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.7);"></div>
+                    <div style="position: absolute; bottom: -2px; left: -2px; width: 40px; height: 40px; border-bottom: 3px solid #00ff41; border-left: 3px solid #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.7);"></div>
+                    <div style="position: absolute; bottom: -2px; right: -2px; width: 40px; height: 40px; border-bottom: 3px solid #00ff41; border-right: 3px solid #00ff41; box-shadow: 0 0 15px rgba(0, 255, 65, 0.7);"></div>
                   </td>
                 </tr>
                 
-                <!-- Newsletter Badge -->
+                <!-- Terminal-style header -->
                 <tr>
-                  <td style="padding: 0 40px;">
-                    <div style="margin-top: -20px; text-align: center;">
-                      <span style="display: inline-block; padding: 8px 20px; background-color: #10b981; color: white; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 20px; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
-                        🆕 New Newsletter
-                      </span>
-                    </div>
-                  </td>
-                </tr>
-                
-                <!-- Newsletter Title -->
-                <tr>
-                  <td style="padding: 30px 40px 20px;">
-                    <h2 style="margin: 0; font-size: 28px; font-weight: 700; color: #111827; line-height: 1.3;">
-                      ${newsletter.title}
-                    </h2>
-                  </td>
-                </tr>
-                
-                <!-- Metadata -->
-                <tr>
-                  <td style="padding: 0 40px 20px;">
-                    <table cellpadding="0" cellspacing="0" border="0">
+                  <td style="padding: 40px 40px 20px; background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%); border-bottom: 1px solid #00ff41;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
                       <tr>
-                        <td style="padding-right: 20px;">
-                          <span style="font-size: 13px; color: #6b7280;">
-                            📅 ${this.formatDate(newsletter.publishedAt)}
-                          </span>
+                        <td style="padding-bottom: 20px;">
+                          <div style="display: flex; align-items: center; gap: 8px;">
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #00ff41; border-radius: 50%; box-shadow: 0 0 10px rgba(0, 255, 65, 0.8);"></span>
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #ffff00; border-radius: 50%; opacity: 0.3;"></span>
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #ff4444; border-radius: 50%; opacity: 0.3;"></span>
+                          </div>
                         </td>
-                        ${
-                          newsletter.metadata?.readTime
-                            ? `
-                        <td style="padding-right: 20px;">
-                          <span style="font-size: 13px; color: #6b7280;">
-                            ⏱️ ${newsletter.metadata.readTime} min read
-                          </span>
-                        </td>
-                        `
-                            : ''
-                        }
+                      </tr>
+                      <tr>
                         <td>
-                          <span style="font-size: 13px; color: #6b7280;">
-                            ✍️ ${newsletter.authorName}
-                          </span>
+                          <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #00ff41; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">
+<span style="color: #666;">$</span> cat ~/newsletters/latest.md
+<span style="color: #00ff41; text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);">
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  THE LOW NOISE /// SIGNAL DETECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                          </pre>
                         </td>
                       </tr>
                     </table>
                   </td>
                 </tr>
                 
-                <!-- Thumbnail (if exists) -->
+                <!-- Newsletter badge -->
+                <tr>
+                  <td style="padding: 0 40px;">
+                    <div style="margin-top: -15px; text-align: left;">
+                      <span style="display: inline-block; padding: 6px 16px; background: #00ff41; color: #000; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);">
+                        &gt;&gt; NEW_TRANSMISSION
+                      </span>
+                    </div>
+                  </td>
+                </tr>
+                
+                <!-- Title section -->
+                <tr>
+                  <td style="padding: 35px 40px 25px; background: #0a0a0a;">
+                    <h1 style="margin: 0; font-size: 32px; font-weight: 700; color: #ffffff; line-height: 1.2; font-family: 'Space Mono', monospace; text-transform: uppercase; letter-spacing: -0.5px; text-shadow: 0 0 20px rgba(0, 255, 65, 0.3);">
+                      ${newsletter.title}
+                    </h1>
+                  </td>
+                </tr>
+                
+                <!-- Metadata in terminal style -->
+                <tr>
+                  <td style="padding: 0 40px 25px; background: #0a0a0a;">
+                    <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #00ff41; line-height: 1.8;">
+<span style="color: #666;">METADATA:</span>
+├─ date: <span style="color: #fff;">${this.formatDate(newsletter.publishedAt)}</span>${
+      newsletter.metadata?.readTime
+        ? `
+├─ read_time: <span style="color: #fff;">${newsletter.metadata.readTime} minutes</span>`
+        : ''
+    }
+└─ author: <span style="color: #fff;">${newsletter.authorName}</span>
+                    </pre>
+                  </td>
+                </tr>
+                
+                <!-- Thumbnail with scanline effect -->
                 ${
                   newsletter.thumbnail
                     ? `
                 <tr>
-                  <td style="padding: 0 40px 30px;">
-                    <img src="${newsletter.thumbnail}" alt="${newsletter.title}" style="width: 100%; height: auto; border-radius: 8px; display: block;" />
+                  <td style="padding: 0 40px 30px; background: #0a0a0a;">
+                    <div style="position: relative; overflow: hidden; border: 2px solid #00ff41; box-shadow: 0 0 30px rgba(0, 255, 65, 0.2);">
+                      <img src="${newsletter.thumbnail}" alt="${newsletter.title}" style="width: 100%; height: auto; display: block; filter: contrast(1.1) brightness(0.95);" />
+                      <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: repeating-linear-gradient(0deg, rgba(0, 255, 65, 0.03) 0px, transparent 2px, transparent 4px); pointer-events: none;"></div>
+                    </div>
                   </td>
                 </tr>
                 `
                     : ''
                 }
                 
-                <!-- Preview/Excerpt -->
+                <!-- Content preview with matrix style -->
                 <tr>
-                  <td style="padding: 0 40px 30px;">
-                    <div style="padding: 24px; background-color: #f9fafb; border-left: 4px solid #667eea; border-radius: 6px;">
-                      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #374151; font-style: italic;">
-                        ${textPreview}...
-                      </p>
+                  <td style="padding: 0 40px 35px; background: #0a0a0a;">
+                    <div style="padding: 25px; background: rgba(0, 255, 65, 0.05); border-left: 4px solid #00ff41; border-right: 1px solid rgba(0, 255, 65, 0.2); position: relative; overflow: hidden;">
+                      <div style="position: absolute; top: 0; right: 0; width: 100%; height: 100%; background: repeating-linear-gradient(90deg, transparent 0px, rgba(0, 255, 65, 0.02) 1px, transparent 2px); pointer-events: none;"></div>
+                      <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 14px; line-height: 1.7; color: #e0e0e0; white-space: pre-wrap; word-wrap: break-word; position: relative;">
+<span style="color: #666;">PREVIEW:</span>
+
+${textPreview}...
+
+<span style="color: #00ff41; animation: blink 1s infinite;">[CONTINUE_READING]</span>
+                      </pre>
                     </div>
                   </td>
                 </tr>
                 
-                <!-- CTA Button -->
+                <!-- CTA button with terminal style -->
                 <tr>
-                  <td style="padding: 0 40px 40px; text-align: center;">
-                    <a href="${newsletterUrl}" style="display: inline-block; padding: 16px 48px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4); transition: all 0.3s ease;">
-                      Read Full Newsletter →
+                  <td style="padding: 0 40px 45px; text-align: center; background: #0a0a0a;">
+                    <a href="${newsletterUrl}" style="display: inline-block; padding: 18px 45px; background: #00ff41; color: #000; text-decoration: none; font-size: 15px; font-weight: 700; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 30px rgba(0, 255, 65, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.2); transition: all 0.3s ease; border: 2px solid #000;">
+                      &gt;&gt; ACCESS FULL TRANSMISSION
                     </a>
+                    <div style="margin-top: 15px;">
+                      <span style="font-size: 11px; color: #666; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;">
+                        [ CLICK TO DECRYPT CONTENT ]
+                      </span>
+                    </div>
                   </td>
                 </tr>
                 
                 <!-- Divider -->
                 <tr>
-                  <td style="padding: 0 40px;">
-                    <div style="height: 1px; background-color: #e5e7eb;"></div>
+                  <td style="padding: 0 40px; background: #0a0a0a;">
+                    <div style="height: 1px; background: linear-gradient(90deg, transparent 0%, #00ff41 50%, transparent 100%); box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);"></div>
                   </td>
                 </tr>
                 
-                <!-- Additional Content -->
+                <!-- Info section -->
                 <tr>
-                  <td style="padding: 30px 40px;">
-                    <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #6b7280;">
-                      <strong style="color: #111827;">Why you're receiving this:</strong><br/>
-                      You're subscribed to The Low Noise newsletter. We handpick the most important AI news and deliver it to your inbox daily at 7 AM.
-                    </p>
-                    <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6b7280;">
-                      Stay informed, stay ahead. Questions or feedback? Just hit reply.
-                    </p>
+                  <td style="padding: 35px 40px; background: #0a0a0a;">
+                    <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #888; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;">
+<span style="color: #00ff41;">WHY_THIS_MESSAGE:</span>
+You subscribed to THE LOW NOISE for daily AI 
+intelligence. We filter signal from noise and 
+deliver at 0900 hours sharp.
+
+<span style="color: #00ff41;">NEED_HELP:</span>
+Reply to this transmission. Human on the other end.
+                    </pre>
                   </td>
                 </tr>
                 
-                <!-- Footer -->
+                <!-- Footer with ASCII art -->
                 <tr>
-                  <td style="padding: 30px 40px; text-align: center; background-color: #f9fafb; border-top: 1px solid #e5e7eb;">
-                    <p style="margin: 0 0 12px; font-size: 14px; color: #6b7280;">
-                      <strong style="color: #111827;">The Low Noise</strong>
-                    </p>
-                    <p style="margin: 0 0 16px; font-size: 12px; color: #9ca3af;">
-                      Curated AI news without the noise
-                    </p>
-                    <p style="margin: 0 0 12px; font-size: 12px;">
-                      <a href="${baseUrl}" style="color: #667eea; text-decoration: none; margin: 0 8px;">Visit Website</a>
-                      <span style="color: #d1d5db;">•</span>
-                      <a href="${baseUrl}/api/user/subscription?action=unsubscribe" style="color: #6b7280; text-decoration: none; margin: 0 8px;">Unsubscribe</a>
-                      <span style="color: #d1d5db;">•</span>
-                      <a href="${baseUrl}/api/user/subscription?action=preferences" style="color: #6b7280; text-decoration: none; margin: 0 8px;">Preferences</a>
-                    </p>
-                    <p style="margin: 0; font-size: 11px; color: #9ca3af;">
-                      © 2026 The Low Noise. All rights reserved.
+                  <td style="padding: 35px 40px; text-align: center; background: #000; border-top: 1px solid #00ff41;">
+                    <pre style="margin: 0 0 20px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #00ff41; line-height: 1.4; opacity: 0.7;">
+ _____ _  _ ___   _    _____      __ 
+|_   _| || | __| | |  / _ \\ \\    / / 
+  | | | __ | _|  | |_| (_) \\ \\/\\/ /  
+  |_| |_||_|___| |____\\___/ \\_/\\_/   
+                                      
+    _  _  ___ ___ ___ ___             
+   | \\| |/ _ \\_ _/ __| __|            
+   | .  | (_) | |\\__ \\ _|             
+   |_|\\_|\\___/___|___/___|            
+                    </pre>
+                    <div style="margin-bottom: 20px;">
+                      <a href="${baseUrl}" style="color: #00ff41; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ SITE ]</a>
+                      <span style="color: #333;">|</span>
+                      <a href="${baseUrl}/api/user/subscription?action=unsubscribe" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ UNSUBSCRIBE ]</a>
+                      <span style="color: #333;">|</span>
+                      <a href="${baseUrl}/api/user/subscription?action=preferences" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ SETTINGS ]</a>
+                    </div>
+                    <p style="margin: 0; font-size: 10px; color: #444; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;">
+                      © 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
                     </p>
                   </td>
                 </tr>
@@ -553,43 +594,58 @@ export class EmailQueueService {
     `;
 
     const textContent = `
-THE LOW NOISE - YOUR DAILY AI INTELLIGENCE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  THE LOW NOISE /// SIGNAL DETECTED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-🆕 NEW NEWSLETTER PUBLISHED
+>> NEW_TRANSMISSION
 
 ${newsletter.title}
 
-${newsletter.authorName} • ${this.formatDate(newsletter.publishedAt)}${newsletter.metadata?.readTime ? ` • ${newsletter.metadata.readTime} min read` : ''}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+METADATA:
+├─ date: ${this.formatDate(newsletter.publishedAt)}${
+      newsletter.metadata?.readTime
+        ? `
+├─ read_time: ${newsletter.metadata.readTime} minutes`
+        : ''
+    }
+└─ author: ${newsletter.authorName}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 PREVIEW:
 
 ${textPreview}...
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[CONTINUE_READING]
 
-Read the full newsletter:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+>> ACCESS FULL TRANSMISSION:
 ${newsletterUrl}
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Why you're receiving this:
-You're subscribed to The Low Noise newsletter. We handpick the most important AI news and deliver it to your inbox daily at 7 AM.
+WHY_THIS_MESSAGE:
+You subscribed to THE LOW NOISE for daily AI intelligence. 
+We filter signal from noise and deliver at 0900 hours sharp.
 
-Stay informed, stay ahead. Questions or feedback? Just reply to this email.
+NEED_HELP:
+Reply to this transmission. Human on the other end.
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-The Low Noise
+THE LOW NOISE
 Curated AI news without the noise
 
-Visit: ${baseUrl}
+LINKS:
+Site: ${baseUrl}
 Unsubscribe: ${baseUrl}/api/user/subscription?action=unsubscribe
-Manage Preferences: ${baseUrl}/api/user/subscription?action=preferences
+Settings: ${baseUrl}/api/user/subscription?action=preferences
 
-© 2026 The Low Noise. All rights reserved.
+© 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
     `;
 
     return { subject, htmlContent, textContent };

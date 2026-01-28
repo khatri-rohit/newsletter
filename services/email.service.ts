@@ -27,8 +27,10 @@ interface EmailTemplate {
 
 class EmailTemplates {
   static welcomeEmail(name: string, email: string): EmailTemplate {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
     return {
-      subject: '🎉 Welcome to The Low Noise - Your Daily AI News Starts Now!',
+      subject: 'Welcome to The Low Noise ⚡',
       html: `
         <!DOCTYPE html>
         <html>
@@ -36,69 +38,113 @@ class EmailTemplates {
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Welcome to The Low Noise</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Mono:wght@400;700&display=swap');
+          </style>
         </head>
-        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f9fafb; padding: 40px 0;">
+        <body style="margin: 0; padding: 0; font-family: 'Space Mono', 'Courier New', monospace; background: linear-gradient(165deg, #000 0%, #1a1a1a 50%, #000 100%);">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 60px 20px;">
             <tr>
               <td align="center">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                  <!-- Header -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 680px; background: #0a0a0a; border: 1px solid #00ff41; box-shadow: 0 0 40px rgba(0, 255, 65, 0.15), inset 0 0 60px rgba(0, 0, 0, 0.5);">
+                  
+                  <!-- Terminal header -->
                   <tr>
-                    <td style="padding: 40px 40px 20px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-                      <div style="display: inline-block; position: relative; margin-bottom: 16px;">
-                        <img src="${process.env.NEXT_PUBLIC_BASE_URL}/lownoise.png" alt="The Low Noise" style="width: 80px; height: auto;" />
-                      </div>
-                      <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: #111827;">Welcome to The Low Noise</h1>
+                    <td style="padding: 40px 40px 20px; background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%); border-bottom: 1px solid #00ff41;">
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="padding-bottom: 20px;">
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #00ff41; border-radius: 50%; box-shadow: 0 0 10px rgba(0, 255, 65, 0.8); margin-right: 8px;"></span>
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #ffff00; border-radius: 50%; opacity: 0.3; margin-right: 8px;"></span>
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #ff4444; border-radius: 50%; opacity: 0.3;"></span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #00ff41; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">
+<span style="color: #666;">$</span> ./connect_subscriber.sh --user="${name || 'there'}"
+<span style="color: #00ff41; text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);">
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CONNECTION ESTABLISHED
+  WELCOME TO THE LOW NOISE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                            </pre>
+                          </td>
+                        </tr>
+                      </table>
                     </td>
                   </tr>
                   
-                  <!-- Content -->
+                  <!-- Welcome badge -->
                   <tr>
-                    <td style="padding: 40px;">
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">Hi ${name || 'there'},</p>
-                      
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                        Thank you for signing up! You've just taken the first step toward staying ahead in the fast-moving world of AI. 🚀
-                      </p>
-                      
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                        Starting tomorrow, you'll receive our daily newsletter at <strong>7 AM</strong> with:
-                      </p>
-                      
-                      <ul style="margin: 0 0 20px; padding-left: 20px; color: #374151;">
-                        <li style="margin-bottom: 8px; font-size: 16px; line-height: 1.6;">5-10 curated AI stories that actually matter</li>
-                        <li style="margin-bottom: 8px; font-size: 16px; line-height: 1.6;">Context and analysis, not just headlines</li>
-                        <li style="margin-bottom: 8px; font-size: 16px; line-height: 1.6;">Quick 5-minute reads to kickstart your day</li>
-                      </ul>
-                      
-                      <div style="margin: 30px 0; padding: 20px; background-color: #f9fafb; border-left: 3px solid #000; border-radius: 4px;">
-                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6b7280;">
-                          <strong style="color: #111827;">Your subscription details:</strong><br>
-                          Email: ${email}<br>
-                          Frequency: Daily at 7 AM<br>
-                          First newsletter: Tomorrow
-                        </p>
+                    <td style="padding: 0 40px;">
+                      <div style="margin-top: -15px;">
+                        <span style="display: inline-block; padding: 6px 16px; background: #00ff41; color: #000; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);">
+                          &gt;&gt; SYSTEM_INITIALIZED
+                        </span>
                       </div>
-                      
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                        Questions or feedback? Just hit reply—we'd love to hear from you.
-                      </p>
-                      
-                      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #374151;">
-                        Cheers,<br>
-                        <strong>Rohit Khatri</strong>
-                      </p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Main content -->
+                  <tr>
+                    <td style="padding: 35px 40px; background: #0a0a0a;">
+                      <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;">
+<span style="color: #00ff41;">&gt; HELLO ${name || 'THERE'},</span>
+
+Welcome to the signal. You just leveled up your AI 
+news game. No more drowning in headlines. No more 
+clickbait. Just pure, curated intelligence.
+
+<span style="color: #666;">// WHAT YOU'LL RECEIVE:</span>
+
+<span style="color: #00ff41;">├─</span> 5-10 handpicked AI stories daily
+<span style="color: #00ff41;">├─</span> Context and analysis, not just headlines  
+<span style="color: #00ff41;">├─</span> 5-minute reads that actually matter
+<span style="color: #00ff41;">└─</span> Delivered at 0900 hours sharp
+
+<span style="color: #666;">// SUBSCRIPTION DETAILS:</span>
+
+<div style="padding: 20px; background: rgba(0, 255, 65, 0.05); border-left: 3px solid #00ff41; margin: 15px 0;">
+<span style="color: #00ff41;">EMAIL:</span>      ${email}
+<span style="color: #00ff41;">FREQUENCY:</span>  Daily at 07:00
+<span style="color: #00ff41;">FIRST_DROP:</span> Tomorrow morning
+<span style="color: #00ff41;">STATUS:</span>     <span style="color: #00ff41; font-weight: 700;">ACTIVE</span>
+</div>
+
+Questions? Feedback? Just hit reply. There's a 
+real human on the other end (no AI chatbot BS).
+
+<span style="color: #666;">// SIGNING OFF</span>
+
+Stay sharp,
+<span style="color: #00ff41; font-weight: 700;">Rohit Khatri</span>
+Curator, The Low Noise
+                      </pre>
                     </td>
                   </tr>
                   
                   <!-- Footer -->
                   <tr>
-                    <td style="padding: 30px 40px; text-align: center; border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
-                      <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
-                        © 2026 The Low Noise. All rights reserved.
-                      </p>
-                      <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                        You're receiving this because you signed up for The Low Noise newsletter.
+                    <td style="padding: 35px 40px; text-align: center; background: #000; border-top: 1px solid #00ff41;">
+                      <pre style="margin: 0 0 20px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #00ff41; line-height: 1.4; opacity: 0.7;">
+ _____ _  _ ___   _    _____      __ 
+|_   _| || | __| | |  / _ \\\\ \\\\    / / 
+  | | | __ | _|  | |_| (_) \\\\ \\\\/\\\\/ /  
+  |_| |_||_|___| |____\\___/ \\\\_/\\\\_/   
+                                      
+    _  _  ___ ___ ___ ___             
+   | \\\\| |/ _ \\\\_ _/ __| __|            
+   | .  | (_) | |\\__ \\\\ _|             
+   |_|\\\\_|\\___/___|___/___|            
+                      </pre>
+                      <div style="margin-bottom: 20px;">
+                        <a href="${baseUrl}" style="color: #00ff41; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ SITE ]</a>
+                        <span style="color: #333;">|</span>
+                        <a href="${baseUrl}/api/user/subscription?action=unsubscribe" style="color: #888; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ UNSUBSCRIBE ]</a>
+                      </div>
+                      <p style="margin: 0; font-size: 10px; color: #444; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;">
+                        © 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
                       </p>
                     </td>
                   </tr>
@@ -110,35 +156,60 @@ class EmailTemplates {
         </html>
       `,
       text: `
-Welcome to The Low Noise!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  CONNECTION ESTABLISHED
+  WELCOME TO THE LOW NOISE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Hi ${name || 'there'},
+>> SYSTEM_INITIALIZED
 
-Thank you for signing up! You've just taken the first step toward staying ahead in the fast-moving world of AI.
+> HELLO ${name || 'THERE'},
 
-Starting tomorrow, you'll receive our daily newsletter at 7 AM with:
-- 5-10 curated AI stories that actually matter
-- Context and analysis, not just headlines
-- Quick 5-minute reads to kickstart your day
+Welcome to the signal. You just leveled up your AI news game. 
+No more drowning in headlines. No more clickbait. 
+Just pure, curated intelligence.
 
-Your subscription details:
-Email: ${email}
-Frequency: Daily at 7 AM
-First newsletter: Tomorrow
+// WHAT YOU'LL RECEIVE:
 
-Questions or feedback? Just hit reply—we'd love to hear from you.
+├─ 5-10 handpicked AI stories daily
+├─ Context and analysis, not just headlines  
+├─ 5-minute reads that actually matter
+└─ Delivered at 0900 hours sharp
 
-Cheers,
+// SUBSCRIPTION DETAILS:
+
+EMAIL:      ${email}
+FREQUENCY:  Daily at 07:00
+FIRST_DROP: Tomorrow morning
+STATUS:     ACTIVE
+
+Questions? Feedback? Just hit reply. There's a real human on 
+the other end (no AI chatbot BS).
+
+// SIGNING OFF
+
+Stay sharp,
 Rohit Khatri
+Curator, The Low Noise
 
-© 2026 The Low Noise. All rights reserved.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THE LOW NOISE
+
+Links:
+Site: ${baseUrl}
+Unsubscribe: ${baseUrl}/api/user/subscription?action=unsubscribe
+
+© 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
       `,
     };
   }
 
   static reLoginEmail(name: string, email: string): EmailTemplate {
+    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
     return {
-      subject: '👋 Welcome back to The Low Noise!',
+      subject: 'Welcome Back to The Low Noise ⚡',
       html: `
         <!DOCTYPE html>
         <html>
@@ -146,63 +217,107 @@ Rohit Khatri
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
           <title>Welcome Back</title>
+          <style>
+            @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Space+Mono:wght@400;700&display=swap');
+          </style>
         </head>
-        <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f9fafb;">
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color: #f9fafb; padding: 40px 0;">
+        <body style="margin: 0; padding: 0; font-family: 'Space Mono', 'Courier New', monospace; background: linear-gradient(165deg, #000 0%, #1a1a1a 50%, #000 100%);">
+          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="padding: 60px 20px;">
             <tr>
               <td align="center">
-                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 600px; background-color: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);">
-                  <!-- Header -->
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width: 680px; background: #0a0a0a; border: 1px solid #00ff41; box-shadow: 0 0 40px rgba(0, 255, 65, 0.15), inset 0 0 60px rgba(0, 0, 0, 0.5);">
+                  
+                  <!-- Terminal header -->
                   <tr>
-                    <td style="padding: 40px 40px 20px; text-align: center; border-bottom: 1px solid #e5e7eb;">
-                      <div style="display: inline-block; position: relative; margin-bottom: 16px;">
-                        <img src="${process.env.NEXT_PUBLIC_BASE_URL}/lownoise.png" alt="The Low Noise" style="width: 80px; height: auto;" />
-                      </div>
-                      <h1 style="margin: 0; font-size: 28px; font-weight: 300; color: #111827;">Welcome Back!</h1>
+                    <td style="padding: 40px 40px 20px; background: linear-gradient(180deg, #0f0f0f 0%, #0a0a0a 100%); border-bottom: 1px solid #00ff41;">
+                      <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                        <tr>
+                          <td style="padding-bottom: 20px;">
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #00ff41; border-radius: 50%; box-shadow: 0 0 10px rgba(0, 255, 65, 0.8); margin-right: 8px;"></span>
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #ffff00; border-radius: 50%; opacity: 0.3; margin-right: 8px;"></span>
+                            <span style="display: inline-block; width: 12px; height: 12px; background: #ff4444; border-radius: 50%; opacity: 0.3;"></span>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>
+                            <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #00ff41; line-height: 1.6; white-space: pre-wrap; word-wrap: break-word;">
+<span style="color: #666;">$</span> ./reconnect.sh --user="${name || 'there'}"
+<span style="color: #00ff41; text-shadow: 0 0 10px rgba(0, 255, 65, 0.5);">
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECURE CONNECTION RE-ESTABLISHED
+  WELCOME BACK TO THE SIGNAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━</span>
+                            </pre>
+                          </td>
+                        </tr>
+                      </table>
                     </td>
                   </tr>
                   
-                  <!-- Content -->
+                  <!-- Status badge -->
                   <tr>
-                    <td style="padding: 40px;">
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">Hi ${name || 'there'},</p>
-                      
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                        Great to see you again! You've successfully logged back into The Low Noise. 
-                      </p>
-                      
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                        You're all set to continue receiving your daily AI news at <strong>7 AM</strong>. We've been busy curating the latest developments in AI, and we can't wait to share them with you.
-                      </p>
-                      
-                      <div style="margin: 30px 0; padding: 20px; background-color: #f9fafb; border-left: 3px solid #000; border-radius: 4px;">
-                        <p style="margin: 0; font-size: 14px; line-height: 1.6; color: #6b7280;">
-                          <strong style="color: #111827;">Your account:</strong><br>
-                          Email: ${email}<br>
-                          Status: Active<br>
-                          Newsletter: Daily at 7 AM
-                        </p>
+                    <td style="padding: 0 40px;">
+                      <div style="margin-top: -15px;">
+                        <span style="display: inline-block; padding: 6px 16px; background: #00ff41; color: #000; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; font-family: 'JetBrains Mono', monospace; box-shadow: 0 0 20px rgba(0, 255, 65, 0.4);">
+                          &gt;&gt; AUTH_SUCCESSFUL
+                        </span>
                       </div>
-                      
-                      <p style="margin: 0 0 20px; font-size: 16px; line-height: 1.6; color: #374151;">
-                        Need help with something? Have feedback? Just hit reply—we're here to help.
-                      </p>
-                      
-                      <p style="margin: 0; font-size: 16px; line-height: 1.6; color: #374151;">
-                        Cheers,<br>
-                        <strong>Rohit Khatri</strong>
-                      </p>
+                    </td>
+                  </tr>
+                  
+                  <!-- Main content -->
+                  <tr>
+                    <td style="padding: 35px 40px; background: #0a0a0a;">
+                      <pre style="margin: 0; font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #e0e0e0; line-height: 1.8; white-space: pre-wrap; word-wrap: break-word;">
+<span style="color: #00ff41;">&gt; WELCOME BACK, ${name || 'FRIEND'}.</span>
+
+Good to see you again. Your session is restored 
+and everything's exactly where you left it.
+
+Daily AI intelligence drops continue at 0900 hours. 
+We've been busy curating the signal while you were 
+away. Fresh insights incoming.
+
+<span style="color: #666;">// ACCOUNT STATUS:</span>
+
+<div style="padding: 20px; background: rgba(0, 255, 65, 0.05); border-left: 3px solid #00ff41; margin: 15px 0;">
+<span style="color: #00ff41;">EMAIL:</span>       ${email}
+<span style="color: #00ff41;">STATUS:</span>      <span style="color: #00ff41; font-weight: 700;">ACTIVE</span>
+<span style="color: #00ff41;">DELIVERY:</span>    Daily at 07:00
+<span style="color: #00ff41;">NEXT_DROP:</span>   Tomorrow morning
+</div>
+
+Need anything? Hit reply. We're here.
+
+<span style="color: #666;">// BACK TO WORK</span>
+
+Keep cutting through the noise,
+<span style="color: #00ff41; font-weight: 700;">Rohit Khatri</span>
+Curator, The Low Noise
+                      </pre>
                     </td>
                   </tr>
                   
                   <!-- Footer -->
                   <tr>
-                    <td style="padding: 30px 40px; text-align: center; border-top: 1px solid #e5e7eb; background-color: #f9fafb;">
-                      <p style="margin: 0 0 10px; font-size: 14px; color: #6b7280;">
-                        © 2026 The Low Noise. All rights reserved.
-                      </p>
-                      <p style="margin: 0; font-size: 12px; color: #9ca3af;">
-                        This email was sent because you logged into your account.
+                    <td style="padding: 35px 40px; text-align: center; background: #000; border-top: 1px solid #00ff41;">
+                      <pre style="margin: 0 0 20px; font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #00ff41; line-height: 1.4; opacity: 0.7;">
+ _____ _  _ ___   _    _____      __ 
+|_   _| || | __| | |  / _ \\\\ \\\\    / / 
+  | | | __ | _|  | |_| (_) \\\\ \\\\/\\\\/ /  
+  |_| |_||_|___| |____\\___/ \\\\_/\\\\_/   
+                                      
+    _  _  ___ ___ ___ ___             
+   | \\\\| |/ _ \\\\_ _/ __| __|            
+   | .  | (_) | |\\__ \\\\ _|             
+   |_|\\\\_|\\___/___|___/___|            
+                      </pre>
+                      <div style="margin-bottom: 20px;">
+                        <a href="${baseUrl}" style="color: #00ff41; text-decoration: none; margin: 0 12px; font-size: 12px; font-family: 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px;">[ SITE ]</a>
+                        <span style="color: #333;">|</span>
+                      </div>
+                      <p style="margin: 0; font-size: 10px; color: #444; font-family: 'JetBrains Mono', monospace; letter-spacing: 0.5px;">
+                        © 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
                       </p>
                     </td>
                   </tr>
@@ -214,25 +329,44 @@ Rohit Khatri
         </html>
       `,
       text: `
-Welcome Back!
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SECURE CONNECTION RE-ESTABLISHED
+  WELCOME BACK TO THE SIGNAL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Hi ${name || 'there'},
+>> AUTH_SUCCESSFUL
 
-Great to see you again! You've successfully logged back into The Low Noise.
+> WELCOME BACK, ${name || 'FRIEND'}.
 
-You're all set to continue receiving your daily AI news at 7 AM. We've been busy curating the latest developments in AI, and we can't wait to share them with you.
+Good to see you again. Your session is restored and everything's 
+exactly where you left it.
 
-Your account:
-Email: ${email}
-Status: Active
-Newsletter: Daily at 7 AM
+Daily AI intelligence drops continue at 0900 hours. We've been 
+busy curating the signal while you were away. Fresh insights incoming.
 
-Need help with something? Have feedback? Just hit reply—we're here to help.
+// ACCOUNT STATUS:
 
-Cheers,
+EMAIL:       ${email}
+STATUS:      ACTIVE
+DELIVERY:    Daily at 07:00
+NEXT_DROP:   Tomorrow morning
+
+Need anything? Hit reply. We're here.
+
+// BACK TO WORK
+
+Keep cutting through the noise,
 Rohit Khatri
+Curator, The Low Noise
 
-© 2026 The Low Noise. All rights reserved.
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+THE LOW NOISE
+
+Links:
+Site: ${baseUrl}
+
+© 2026 THE LOW NOISE // ALL TRANSMISSIONS SECURED
       `,
     };
   }
