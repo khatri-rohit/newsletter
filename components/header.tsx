@@ -9,7 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 export function Header({ classname }: { classname?: string }) {
-    const { user } = useAuth();
+    const { user, isAdmin } = useAuth();
     const [authModalOpen, setAuthModalOpen] = useState(false);
 
     return (
@@ -34,6 +34,15 @@ export function Header({ classname }: { classname?: string }) {
                     </div>
 
                     <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                        {user && isAdmin && (
+                            <Button
+                                onClick={() => window.location.href = '/admin/drafts'}
+                                variant="default"
+                                size="sm"
+                                className="h-9 sm:h-10 px-3 sm:px-5 text-xs sm:text-sm cursor-pointer">
+                                Admin
+                            </Button>
+                        )}
                         {user ? (
                             <UserMenu />
                         ) : (

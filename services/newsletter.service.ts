@@ -252,14 +252,114 @@ export class NewsletterService {
   }
 
   /**
-   * Delete a newsletter
+   * Delete a newsletter and cleanup all associated resources
    */
   async deleteNewsletter(id: string): Promise<void> {
     try {
+      // First, get the newsletter to extract image URLs
+      const doc = await this.newslettersCollection.doc(id).get();
+      
+      if (!doc.exists) {
+        throw new Error('Newsletter not found');
+      }
+
+      const newsletter = doc.data() as Newsletter;
+
+      // Extract and delete images from R2 storage
+      await this.deleteNewsletterImages(newsletter);
+
+      // Delete the newsletter document
       await this.newslettersCollection.doc(id).delete();
+
+      console.log(`[NewsletterService] Successfully deleted newsletter ${id} and cleaned up resources`);
     } catch (error) {
       console.error('Error deleting newsletter:', error);
       throw new Error('Failed to delete newsletter');
+    }
+  }
+
+  /**
+   * Extract and delete all images associated with a newsletter
+   */
+  private async deleteNewsletterImages(newsletter: Newsletter): Promise<void> {
+    try {
+      const imageUrls: string[] = [];
+
+      // Extract thumbnail URL
+      if (newsletter.thumbnail) {
+        imageUrls.push(newsletter.thumbnail);
+      }
+
+      // Extract images from content (both markdown and HTML)
+      if (newsletter.content) {
+        // Extract from HTML img tags
+        const htmlImgRegex = /<img[^>]+src=["']([^"']+)["']/g;
+        let match;
+        while ((match = htmlImgRegex.exec(newsletter.content)) !== null) {
+          imageUrls.push(match[1]);
+        }
+
+        // Extract from markdown image syntax ![alt](url)
+        const mdImgRegex = /!\[([^\]]*)\]\(([^)]+)\)/g;
+        while ((match = mdImgRegex.exec(newsletter.content)) !== null) {
+          imageUrls.push(match[2]);
+        }
+      }
+
+      // Filter URLs to only include images from our R2 storage
+      // Expected format: https://pub-80b14eac0e644afab28d83edb15a62be.r2.dev/newsletter-images/...
+      const r2ImageKeys = imageUrls
+        .filter(url => url.includes('.r2.dev/') || url.includes('r2.cloudflarestorage.com/'))
+        .map(url => {
+          // Extract the key (path after the domain)
+          try {
+            const urlObj = new URL(url);
+            return urlObj.pathname.startsWith('/') ? urlObj.pathname.substring(1) : urlObj.pathname;
+          } catch {
+            return null;
+          }
+        })
+        .filter((key): key is string => key !== null);
+
+      if (r2ImageKeys.length > 0) {
+        console.log(`[NewsletterService] Deleting ${r2ImageKeys.length} images from R2 for newsletter ${newsletter.id}`);
+        
+        // Import R2Service dynamically to avoid circular dependencies
+        const { DeleteObjectsCommand, S3Client } = await import('@aws-sdk/client-s3');
+        
+        // Initialize R2 client
+        const r2Client = new S3Client({
+          region: 'auto',
+          endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+          credentials: {
+            accessKeyId: process.env.R2_ACCESS_KEY_ID!,
+            secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+          },
+          forcePathStyle: false,
+        });
+
+        const bucketName = process.env.R2_IMAGE_BUCKET_NAME || process.env.R2_BUCKET_NAME;
+
+        // Delete images in batches of 1000 (S3/R2 limit)
+        const batchSize = 1000;
+        for (let i = 0; i < r2ImageKeys.length; i += batchSize) {
+          const batch = r2ImageKeys.slice(i, i + batchSize);
+          
+          const command = new DeleteObjectsCommand({
+            Bucket: bucketName,
+            Delete: {
+              Objects: batch.map(key => ({ Key: key })),
+              Quiet: true,
+            },
+          });
+
+          await r2Client.send(command);
+          console.log(`[NewsletterService] Deleted batch of ${batch.length} images from R2`);
+        }
+      }
+    } catch (error) {
+      // Log error but don't throw - we still want to delete the newsletter even if image cleanup fails
+      console.error('[NewsletterService] Error deleting newsletter images:', error);
     }
   }
 

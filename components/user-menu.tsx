@@ -21,10 +21,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { LogOut, User, Mail, Calendar, Shield, Bell, BellOff, CheckCircle2, XCircle } from 'lucide-react';
+import { LogOut, User, Mail, Calendar, Shield, Bell, BellOff, CheckCircle2, XCircle, FileText, Plus } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { useGetSubscriptionStatusQuery, useUpdateSubscriptionMutation, useUnsubscribeMutation } from '@/lib/api';
+import Link from 'next/link';
 
 export function UserMenu() {
     const { user, signOut, isAdmin } = useAuth();
@@ -142,6 +143,28 @@ export function UserMenu() {
                         <User className="mr-2 h-4 w-4" />
                         <span>Profile</span>
                     </DropdownMenuItem>
+
+                    {isAdmin && (
+                        <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel className="text-xs text-muted-foreground">
+                                Admin
+                            </DropdownMenuLabel>
+                            <Link href="/admin/post">
+                                <DropdownMenuItem className="cursor-pointer">
+                                    <Plus className="mr-2 h-4 w-4" />
+                                    <span>New Newsletter</span>
+                                </DropdownMenuItem>
+                            </Link>
+                            <Link href="/admin/drafts">
+                                <DropdownMenuItem className="cursor-pointer">
+                                    <FileText className="mr-2 h-4 w-4" />
+                                    <span>My Drafts</span>
+                                </DropdownMenuItem>
+                            </Link>
+                        </>
+                    )}
+
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                         onClick={signOut}

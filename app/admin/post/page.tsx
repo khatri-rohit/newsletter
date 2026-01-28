@@ -4,7 +4,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth-context';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { RichTextEditor } from '@/components/rich-text-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +27,12 @@ import {
     FileText,
     Image as ImageIcon,
 } from 'lucide-react';
-import { useUploadImageMutation, useCreateNewsletterMutation } from '@/lib/api';
+import {
+    useUploadImageMutation,
+    useCreateNewsletterMutation,
+    useUpdateNewsletterMutation,
+    useGetNewsletterByIdQuery
+} from '@/lib/api';
 
 interface NewsletterFormData {
     title: string;
@@ -41,13 +46,24 @@ interface NewsletterFormData {
 function AdminPostContent() {
     const { user, isAdmin, loading } = useAuth();
     const router = useRouter();
+    const searchParams = useSearchParams();
+    const newsletterId = searchParams.get('id');
+
     const [currentTab, setCurrentTab] = useState('edit');
     const [tagInput, setTagInput] = useState('');
+    const [currentNewsletterId, setCurrentNewsletterId] = useState<string | null>(newsletterId);
 
     // RTK Query hooks
     const [uploadImage, { isLoading: thumbnailUploading }] = useUploadImageMutation();
-    const [createNewsletter, { isLoading: saving }] = useCreateNewsletterMutation();
+    const [createNewsletter, { isLoading: creating }] = useCreateNewsletterMutation();
+    const [updateNewsletter, { isLoading: updating }] = useUpdateNewsletterMutation();
+    const { data: existingNewsletter, isLoading: loadingNewsletter } = useGetNewsletterByIdQuery(
+        currentNewsletterId || '',
+        { skip: !currentNewsletterId }
+    );
     const [publishing, setPublishing] = useState(false);
+
+    const saving = creating || updating;
 
     const [formData, setFormData] = useState<NewsletterFormData>({
         title: '',
@@ -57,8 +73,23 @@ function AdminPostContent() {
         tags: [],
         status: 'draft',
     });
-    // console.log(isAdmin)
-    // console.log(user)
+
+    // Load existing newsletter if ID is provided
+    useEffect(() => {
+        if (existingNewsletter?.data) {
+            const newsletter = existingNewsletter.data;
+            setFormData({
+                title: newsletter.title || '',
+                content: newsletter.content || '',
+                excerpt: newsletter.excerpt || '',
+                thumbnail: newsletter.thumbnail || '',
+                tags: newsletter.tags || [],
+                status: newsletter.status || 'draft',
+            });
+            console.log('[Admin] Loaded existing newsletter:', newsletter.id);
+        }
+    }, [existingNewsletter]);
+
     // Check if user is admin
     useEffect(() => {
         if (!loading && !user) {
@@ -150,17 +181,37 @@ function AdminPostContent() {
         }
 
         try {
-            const result = await createNewsletter({
-                ...formData,
-                status: 'draft',
-            }).unwrap();
+            let result;
+
+            if (currentNewsletterId) {
+                // Update existing draft
+                result = await updateNewsletter({
+                    id: currentNewsletterId,
+                    ...formData,
+                    status: 'draft',
+                }).unwrap();
+            } else {
+                // Create new draft
+                result = await createNewsletter({
+                    ...formData,
+                    status: 'draft',
+                }).unwrap();
+
+                // Store the ID for future updates
+                if (result.success && result.data?.id) {
+                    setCurrentNewsletterId(result.data.id);
+                    // Update URL to include the ID
+                    router.push(`/admin/post?id=${result.data.id}`);
+                }
+            }
 
             if (result.success) {
-                toast.success('Draft saved successfully');
+                toast.success(currentNewsletterId ? 'Draft updated successfully' : 'Draft saved successfully');
             } else {
                 throw new Error(result.error || 'Failed to save draft');
             }
         } catch (error) {
+            console.error('[Admin] Save draft error:', error);
             toast.error(error instanceof Error ? error.message : 'Failed to save draft');
         }
     };
@@ -173,15 +224,27 @@ function AdminPostContent() {
 
         setPublishing(true);
         try {
-            const result = await createNewsletter({
-                ...formData,
-                status: 'published',
-            }).unwrap();
+            let result;
+
+            if (currentNewsletterId) {
+                // Update existing draft to published
+                result = await updateNewsletter({
+                    id: currentNewsletterId,
+                    ...formData,
+                    status: 'published',
+                }).unwrap();
+            } else {
+                // Create new published newsletter
+                result = await createNewsletter({
+                    ...formData,
+                    status: 'published',
+                }).unwrap();
+            }
 
             if (result.success) {
                 toast.success('Newsletter published successfully! 🎉');
 
-                // Reset form
+                // Reset form and navigate to new post
                 setFormData({
                     title: '',
                     content: '',
@@ -190,17 +253,20 @@ function AdminPostContent() {
                     tags: [],
                     status: 'draft',
                 });
+                setCurrentNewsletterId(null);
+                router.push('/admin/post');
             } else {
                 throw new Error(result.error || 'Failed to publish');
             }
         } catch (error) {
+            console.error('[Admin] Publish error:', error);
             toast.error(error instanceof Error ? error.message : 'Failed to publish newsletter');
         } finally {
             setPublishing(false);
         }
     };
 
-    if (loading) {
+    if (loading || loadingNewsletter) {
         return <LoadingScreen />;
     }
 
@@ -215,9 +281,11 @@ function AdminPostContent() {
             <main className="flex-1 container mx-auto px-3 sm:px-4 py-6 sm:py-8 pt-16 sm:pt-20 max-w-7xl">
                 {/* Header */}
                 <div className="mb-6 sm:mb-8">
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">Create Newsletter</h1>
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-2">
+                        {currentNewsletterId ? 'Edit Newsletter' : 'Create Newsletter'}
+                    </h1>
                     <p className="text-sm sm:text-base text-gray-600">
-                        Craft your next newsletter with our powerful editor
+                        {currentNewsletterId ? 'Continue editing your newsletter draft' : 'Craft your next newsletter with our powerful editor'}
                     </p>
                 </div>
 
