@@ -322,7 +322,7 @@ function AdminPostContent() {
                         onClick={handleSaveDraft}
                         disabled={saving || publishing}
                         variant="outline"
-                        className="text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
+                        className="text-xs sm:text-sm flex-1 sm:flex-none min-w-25"
                     >
                         <Save className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         {saving ? 'Saving...' : 'Save Draft'}
@@ -330,7 +330,7 @@ function AdminPostContent() {
                     <Button
                         onClick={() => setCurrentTab('preview')}
                         variant="outline"
-                        className="text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
+                        className="text-xs sm:text-sm flex-1 sm:flex-none min-w-25"
                     >
                         <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         Preview
@@ -338,7 +338,7 @@ function AdminPostContent() {
                     <Button
                         onClick={handlePublish}
                         disabled={saving || publishing}
-                        className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xs sm:text-sm flex-1 sm:flex-none min-w-[100px]"
+                        className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xs sm:text-sm flex-1 sm:flex-none min-w-25"
                     >
                         <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         {publishing ? 'Publishing...' : 'Publish'}
