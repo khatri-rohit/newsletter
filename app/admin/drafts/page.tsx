@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Header } from '@/components/header';
 import Footer from '@/components/footer';
 import { LoadingScreen } from '@/components/loading-screen';
-import { useGetNewslettersQuery, useDeleteNewsletterMutation, useUpdateNewsletterMutation } from '@/lib/api';
+import { useGetNewslettersQuery, useDeleteNewsletterMutation, useUpdateNewsletterMutation, usePublishNewsletterMutation } from '@/lib/api';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -41,8 +41,10 @@ export default function AdminDraftsPage() {
 
     const [deleteNewsletter] = useDeleteNewsletterMutation();
     const [updateNewsletter] = useUpdateNewsletterMutation();
+    const [publishNewsletter] = usePublishNewsletterMutation();
     const [deletingId, setDeletingId] = React.useState<string | null>(null);
     const [convertingId, setConvertingId] = React.useState<string | null>(null);
+    const [sendingEmailsId, setSendingEmailsId] = React.useState<string | null>(null);
 
     const handleDelete = async (id: string, title: string) => {
         if (!confirm(`Are you sure you want to delete "${title}"? This action cannot be undone.`)) {
@@ -78,6 +80,29 @@ export default function AdminDraftsPage() {
             toast.error('Failed to convert to draft. Please try again.');
         } finally {
             setConvertingId(null);
+        }
+    };
+
+    const handleSendToSubscribers = async (id: string, title: string) => {
+        if (!confirm(`Send "${title}" to all active subscribers? This action will send emails immediately.`)) {
+            return;
+        }
+
+        setSendingEmailsId(id);
+        try {
+            const result = await publishNewsletter(id).unwrap();
+            if (result.success) {
+                toast.success('Newsletter sent successfully! 📧', {
+                    description: result.message || 'Emails are being sent to all subscribers',
+                });
+            } else {
+                throw new Error(result.error || 'Failed to send newsletter');
+            }
+        } catch (error) {
+            console.error('Error sending to subscribers:', error);
+            toast.error('Failed to send newsletter to subscribers. Please try again.');
+        } finally {
+            setSendingEmailsId(null);
         }
     };
 
@@ -324,6 +349,15 @@ export default function AdminDraftsPage() {
                                                             View
                                                         </Button>
                                                     </Link>
+                                                    <Button
+                                                        variant="default"
+                                                        className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
+                                                        onClick={() => handleSendToSubscribers(newsletter.id!, newsletter.title)}
+                                                        disabled={sendingEmailsId === newsletter.id}
+                                                    >
+                                                        <Send className="h-4 w-4 mr-2" />
+                                                        {sendingEmailsId === newsletter.id ? 'Sending...' : 'Send to Subscribers'}
+                                                    </Button>
                                                     <Link href={`/admin/post?id=${newsletter.id}`}>
                                                         <Button variant="outline">
                                                             <Edit className="h-4 w-4 mr-2" />

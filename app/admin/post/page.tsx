@@ -31,7 +31,8 @@ import {
     useUploadImageMutation,
     useCreateNewsletterMutation,
     useUpdateNewsletterMutation,
-    useGetNewsletterByIdQuery
+    useGetNewsletterByIdQuery,
+    usePublishNewsletterMutation
 } from '@/lib/api';
 
 interface NewsletterFormData {
@@ -61,7 +62,9 @@ function AdminPostContent() {
         currentNewsletterId || '',
         { skip: !currentNewsletterId }
     );
+    const [publishNewsletter] = usePublishNewsletterMutation();
     const [publishing, setPublishing] = useState(false);
+    const [sendingEmails, setSendingEmails] = useState(false);
 
     const saving = creating || updating;
 
@@ -269,19 +272,15 @@ function AdminPostContent() {
             }
 
             if (result.success) {
-                toast.success('Newsletter published successfully! 🎉');
-
-                // Reset form and navigate to new post
-                setFormData({
-                    title: '',
-                    content: '',
-                    excerpt: '',
-                    thumbnail: '',
-                    tags: [],
-                    status: 'draft',
+                toast.success('Newsletter published successfully! 🎉', {
+                    description: 'Newsletter is now live. Use "Send to Subscribers" to notify your audience.',
                 });
-                setCurrentNewsletterId(null);
-                router.push('/admin/post');
+
+                // Store the newsletter ID if it's a new one
+                if (!currentNewsletterId && result.data?.id) {
+                    setCurrentNewsletterId(result.data.id);
+                    router.push(`/admin/post?id=${result.data.id}`);
+                }
             } else {
                 throw new Error(result.error || 'Failed to publish');
             }
@@ -290,6 +289,47 @@ function AdminPostContent() {
             toast.error(error instanceof Error ? error.message : 'Failed to publish newsletter');
         } finally {
             setPublishing(false);
+        }
+    };
+
+    const handleSendToSubscribers = async () => {
+        if (!currentNewsletterId) {
+            toast.error('Please save or publish the newsletter first');
+            return;
+        }
+
+        // Check if newsletter is published
+        if (formData.status !== 'published') {
+            toast.error('Newsletter must be published before sending to subscribers');
+            return;
+        }
+
+        const confirmed = confirm(
+            'This will send the newsletter to all active subscribers. Are you sure you want to continue?'
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        setSendingEmails(true);
+        try {
+            const result = await publishNewsletter(currentNewsletterId).unwrap();
+
+            if (result.success) {
+                toast.success('Newsletter sent successfully! 📧', {
+                    description: result.message || 'Emails are being sent to all subscribers',
+                });
+            } else {
+                throw new Error(result.error || 'Failed to send newsletter');
+            }
+        } catch (error) {
+            console.error('[Admin] Send to subscribers error:', error);
+            toast.error(
+                error instanceof Error ? error.message : 'Failed to send newsletter to subscribers'
+            );
+        } finally {
+            setSendingEmails(false);
         }
     };
 
@@ -320,7 +360,7 @@ function AdminPostContent() {
                 <div className="flex flex-wrap gap-2 sm:gap-3 mb-4 sm:mb-6">
                     <Button
                         onClick={handleSaveDraft}
-                        disabled={saving || publishing}
+                        disabled={saving || publishing || sendingEmails}
                         variant="outline"
                         className="text-xs sm:text-sm flex-1 sm:flex-none min-w-25"
                     >
@@ -337,12 +377,22 @@ function AdminPostContent() {
                     </Button>
                     <Button
                         onClick={handlePublish}
-                        disabled={saving || publishing}
+                        disabled={saving || publishing || sendingEmails}
                         className="bg-linear-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-xs sm:text-sm flex-1 sm:flex-none min-w-25"
                     >
                         <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
                         {publishing ? 'Publishing...' : 'Publish'}
                     </Button>
+                    {formData.status === 'published' && currentNewsletterId && (
+                        <Button
+                            onClick={handleSendToSubscribers}
+                            disabled={saving || publishing || sendingEmails}
+                            className="bg-linear-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-xs sm:text-sm flex-1 sm:flex-none min-w-25"
+                        >
+                            <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
+                            {sendingEmails ? 'Sending...' : 'Send to Subscribers'}
+                        </Button>
+                    )}
                 </div>
 
                 <Tabs value={currentTab} onValueChange={setCurrentTab} className="w-full">

@@ -95,20 +95,32 @@ export class EmailTrackingService {
     try {
       const now = admin.firestore.FieldValue.serverTimestamp();
 
-      const deliveryData = {
+      // Build delivery data object, only including optional fields if they're defined
+      const deliveryData: Record<string, unknown> = {
         newsletterId: data.newsletterId,
         newsletterTitle: data.newsletterTitle,
         recipientEmail: data.recipientEmail,
-        recipientName: data.recipientName,
-        recipientUserId: data.recipientUserId,
         status: 'pending',
         attempts: 0,
-        metadata: {
-          subject: data.subject,
-        },
         createdAt: now,
         updatedAt: now,
       };
+
+      // Only add optional fields if they have values
+      if (data.recipientName) {
+        deliveryData.recipientName = data.recipientName;
+      }
+
+      if (data.recipientUserId) {
+        deliveryData.recipientUserId = data.recipientUserId;
+      }
+
+      // Only add metadata if subject exists
+      if (data.subject) {
+        deliveryData.metadata = {
+          subject: data.subject,
+        };
+      }
 
       const docRef = await this.deliveriesCollection.add(deliveryData);
       console.log(`[EmailTracking] Created delivery record: ${docRef.id}`);
