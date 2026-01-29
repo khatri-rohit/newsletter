@@ -13,7 +13,7 @@ export class R2Service {
 
   constructor(config: R2Config) {
     // Cloudflare R2 endpoint format
-    const endpoint = `https://5a8d674f83ca3fb12bdcb750284dd551.r2.cloudflarestorage.com`;
+    const endpoint = `https://${config.accountId}.r2.cloudflarestorage.com`;
 
     this.client = new S3Client({
       region: 'auto',
