@@ -545,6 +545,38 @@ export class NewsletterService {
     }
   }
 
+  /**
+   * Get top newsletters based on views
+   * @param limit - Number of newsletters to return (default: 3)
+   * @param excludeId - Optional newsletter ID to exclude from results
+   */
+  async getTopNewslettersByViews(limit: number = 3, excludeId?: string): Promise<Newsletter[]> {
+    try {
+      const query: admin.firestore.Query = this.newslettersCollection
+        .where('status', '==', 'published')
+        .orderBy('views', 'desc')
+        .orderBy('publishedAt', 'desc')
+        .limit(limit + (excludeId ? 1 : 0)); // Fetch one extra if we need to exclude
+      const snapshot = await query.get();
+      let newsletters = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Newsletter[];
+      // console.log(newsletters);
+
+      // Exclude the specified newsletter if provided
+      if (excludeId) {
+        newsletters = newsletters.filter((newsletter) => newsletter.id !== excludeId);
+      }
+
+      // Return only the requested limit
+      return newsletters.slice(0, limit);
+    } catch (error) {
+      console.error('Error getting top newsletters by views:', error);
+      throw new Error('Failed to get top newsletters');
+    }
+  }
+
   // ==========================================
   // HELPER METHODS
   // ==========================================

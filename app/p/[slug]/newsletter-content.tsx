@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import ScrollTop from '@/components/scroll-to-top';
 import { formatTimestamp, generateViewerId, formatNumber } from '@/lib/helpers';
 import { generateArticleSchema, generateBreadcrumbSchema } from '@/lib/schema';
+import { ContinueReading } from '@/components/continue-reading';
 
 interface NewsletterContentProps {
     newsletter: Newsletter;
@@ -42,41 +43,41 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
     ], baseUrl);
 
     // Track newsletter view
-    useEffect(() => {
-        const trackView = async () => {
-            if (isTracking) return; // Prevent duplicate tracking
-            setIsTracking(true);
+    // useEffect(() => {
+    //     const trackView = async () => {
+    //         if (isTracking) return; // Prevent duplicate tracking
+    //         setIsTracking(true);
 
-            try {
-                const viewerId = generateViewerId();
+    //         try {
+    //             const viewerId = generateViewerId();
 
-                // Call the API to increment views
-                const response = await fetch(`/api/newsletters/${newsletter.id}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        action: 'incrementViews',
-                        viewerId,
-                    }),
-                });
+    //             // Call the API to increment views
+    //             const response = await fetch(`/api/newsletters/${newsletter.id}`, {
+    //                 method: 'POST',
+    //                 headers: {
+    //                     'Content-Type': 'application/json',
+    //                 },
+    //                 body: JSON.stringify({
+    //                     action: 'incrementViews',
+    //                     viewerId,
+    //                 }),
+    //             });
 
-                if (response.ok) {
-                    const result = await response.json();
-                    if (result.data?.counted && result.data?.totalViews) {
-                        setViewCount(result.data.totalViews);
-                    }
-                }
-            } catch (error) {
-                console.error('Error tracking view:', error);
-            }
-        };
+    //             if (response.ok) {
+    //                 const result = await response.json();
+    //                 if (result.data?.counted && result.data?.totalViews) {
+    //                     setViewCount(result.data.totalViews);
+    //                 }
+    //             }
+    //         } catch (error) {
+    //             console.error('Error tracking view:', error);
+    //         }
+    //     };
 
-        // Track view after a 3-second delay to ensure it's a genuine read
-        const timer = setTimeout(trackView, 3000);
-        return () => clearTimeout(timer);
-    }, [newsletter.id, isTracking]);
+    //     // Track view after a 3-second delay to ensure it's a genuine read
+    //     const timer = setTimeout(trackView, 3000);
+    //     return () => clearTimeout(timer);
+    // }, [newsletter.id, isTracking]);
 
     // Track scroll progress
     useEffect(() => {
@@ -318,6 +319,9 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
                         </div>
                     </div>
                 </article>
+
+                {/* Continue Reading Section */}
+                <ContinueReading currentNewsletterId={newsletter.id || ''} />
 
                 {/* Author Bio */}
                 {/* {newsletter.authorName && (
