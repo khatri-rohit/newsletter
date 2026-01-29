@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { R2Service } from "@/services/r2.service";
-import { ContentMetadata } from "@/services/types";
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import crypto from "crypto";
-import * as admin from "firebase-admin";
+import { R2Service } from '@/services/r2.service';
+import { ContentMetadata } from '@/services/types';
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import crypto from 'crypto';
+import * as admin from 'firebase-admin';
 
 // ==========================================
 // FIREBASE ADMIN INITIALIZATION
@@ -16,7 +16,7 @@ if (!admin.apps.length) {
     : {
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       };
 
   admin.initializeApp({
@@ -29,21 +29,19 @@ if (!admin.apps.length) {
 // ==========================================
 
 const RouteParamsSchema = z.object({
-  date: z
-    .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format. Expected YYYY-MM-DD"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Invalid date format. Expected YYYY-MM-DD'),
   filename: z
     .string()
     .min(1)
     .max(255)
-    .regex(/^[\w\-. ]+\.(json|txt)$/, "Invalid filename format"),
+    .regex(/^[\w\-. ]+\.(md)$/, 'Invalid filename format'),
 });
 
 const R2ConfigSchema = z.object({
-  accountId: z.string().min(1, "R2_ACCOUNT_ID is required"),
-  accessKeyId: z.string().min(1, "R2_ACCESS_KEY_ID is required"),
-  secretAccessKey: z.string().min(1, "R2_SECRET_ACCESS_KEY is required"),
-  bucketName: z.string().min(1, "R2_BUCKET_NAME is required"),
+  accountId: z.string().min(1, 'R2_ACCOUNT_ID is required'),
+  accessKeyId: z.string().min(1, 'R2_ACCESS_KEY_ID is required'),
+  secretAccessKey: z.string().min(1, 'R2_SECRET_ACCESS_KEY is required'),
+  bucketName: z.string().min(1, 'R2_BUCKET_NAME is required'),
 });
 
 // ==========================================
@@ -56,12 +54,12 @@ function getR2Config() {
       accountId: process.env.R2_ACCOUNT_ID,
       accessKeyId: process.env.R2_ACCESS_KEY_ID,
       secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
-      bucketName: process.env.R2_BUCKET_NAME || "metadata-data-ingestion",
+      bucketName: process.env.R2_BUCKET_NAME || 'metadata-data-ingestion',
     });
   } catch (error: any) {
     const err = error as Error;
     throw new Error(`Invalid R2 configuration: ${err.message}`);
-    throw new Error("Invalid R2 configuration. Check environment variables.");
+    throw new Error('Invalid R2 configuration. Check environment variables.');
   }
 }
 
@@ -110,7 +108,7 @@ class MetadataCache {
     this.cache.set(key, {
       data,
       timestamp: Date.now(),
-      etag: crypto.createHash("md5").update(JSON.stringify(data)).digest("hex"),
+      etag: crypto.createHash('md5').update(JSON.stringify(data)).digest('hex'),
     });
   }
 
@@ -153,15 +151,15 @@ class Logger {
   }
 
   info(message: string, context: LogContext) {
-    this.log("INFO", message, context);
+    this.log('INFO', message, context);
   }
 
   warn(message: string, context: LogContext) {
-    this.log("WARN", message, context);
+    this.log('WARN', message, context);
   }
 
   error(message: string, context: LogContext) {
-    this.log("ERROR", message, context);
+    this.log('ERROR', message, context);
   }
 }
 
@@ -176,16 +174,14 @@ class CircuitBreaker {
   private lastFailureTime = 0;
   private readonly threshold = 5;
   private readonly timeout = 60000; // 1 minute
-  private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
+  private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED';
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
-    if (this.state === "OPEN") {
+    if (this.state === 'OPEN') {
       if (Date.now() - this.lastFailureTime > this.timeout) {
-        this.state = "HALF_OPEN";
+        this.state = 'HALF_OPEN';
       } else {
-        throw new Error(
-          "Circuit breaker is OPEN. Service temporarily unavailable.",
-        );
+        throw new Error('Circuit breaker is OPEN. Service temporarily unavailable.');
       }
     }
 
@@ -201,7 +197,7 @@ class CircuitBreaker {
 
   private onSuccess() {
     this.failureCount = 0;
-    this.state = "CLOSED";
+    this.state = 'CLOSED';
   }
 
   private onFailure() {
@@ -209,7 +205,7 @@ class CircuitBreaker {
     this.lastFailureTime = Date.now();
 
     if (this.failureCount >= this.threshold) {
-      this.state = "OPEN";
+      this.state = 'OPEN';
     }
   }
 }
@@ -220,11 +216,7 @@ const r2CircuitBreaker = new CircuitBreaker();
 // RETRY LOGIC WITH EXPONENTIAL BACKOFF
 // ==========================================
 
-async function withRetry<T>(
-  fn: () => Promise<T>,
-  maxRetries = 3,
-  baseDelay = 1000,
-): Promise<T> {
+async function withRetry<T>(fn: () => Promise<T>, maxRetries = 3, baseDelay = 1000): Promise<T> {
   let lastError: Error;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -248,18 +240,18 @@ async function withRetry<T>(
 // ==========================================
 
 async function authenticate(
-  req: NextRequest,
+  req: NextRequest
 ): Promise<{ userId: string; role: string; email?: string }> {
   // Extract token from Authorization header
-  const authHeader = req.headers.get("authorization");
-  if (!authHeader?.startsWith("Bearer ")) {
-    throw new Error("Missing or invalid authorization header");
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new Error('Missing or invalid authorization header');
   }
 
   const token = authHeader.substring(7);
 
   if (!token) {
-    throw new Error("Missing authentication token");
+    throw new Error('Missing authentication token');
   }
 
   try {
@@ -270,12 +262,7 @@ async function authenticate(
     const userId = decodedToken.uid;
     const email = decodedToken.email;
 
-    // Check custom claims for role (you can set this via Firebase Admin SDK)
-    const role = (decodedToken.role as string) || "user";
-
-    // Optionally, fetch additional user data from Firestore if needed
-    // const userDoc = await admin.firestore().collection('users').doc(userId).get();
-    // const userData = userDoc.data();
+    const role = (decodedToken.role as string) || 'user';
 
     return {
       userId,
@@ -285,15 +272,15 @@ async function authenticate(
   } catch (error) {
     if (error instanceof Error) {
       // Provide specific error messages for common Firebase Auth errors
-      if (error.message.includes("expired")) {
-        throw new Error("Token has expired");
+      if (error.message.includes('expired')) {
+        throw new Error('Token has expired');
       }
-      if (error.message.includes("invalid")) {
-        throw new Error("Invalid authentication token");
+      if (error.message.includes('invalid')) {
+        throw new Error('Invalid authentication token');
       }
       throw new Error(`Authentication failed: ${error.message}`);
     }
-    throw new Error("Authentication failed");
+    throw new Error('Authentication failed');
   }
 }
 
@@ -303,7 +290,7 @@ async function authenticate(
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: Promise<{ date: string; filename: string }> },
+  { params }: { params: Promise<{ date: string; filename: string }> }
 ) {
   const startTime = Date.now();
   const correlationId = crypto.randomUUID();
@@ -317,27 +304,27 @@ export async function GET(
     try {
       user = await authenticate(req);
     } catch (authError) {
-      logger.warn("Authentication failed", {
+      logger.warn('Authentication failed', {
         correlationId,
-        error: authError instanceof Error ? authError.message : "Unknown error",
+        error: authError instanceof Error ? authError.message : 'Unknown error',
       });
 
       return NextResponse.json(
         {
           success: false,
-          error: "Unauthorized",
-          message: "Authentication required",
+          error: 'Unauthorized',
+          message: 'Authentication required',
           correlationId,
         },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
     // ==========================================
     // 2. AUTHORIZATION
     // ==========================================
-    if (user.role !== "admin") {
-      logger.warn("Authorization failed", {
+    if (user.role !== 'admin') {
+      logger.warn('Authorization failed', {
         correlationId,
         userId: user.userId,
         role: user.role,
@@ -346,11 +333,11 @@ export async function GET(
       return NextResponse.json(
         {
           success: false,
-          error: "Forbidden",
-          message: "Admin access required",
+          error: 'Forbidden',
+          message: 'Admin access required',
           correlationId,
         },
-        { status: 403 },
+        { status: 403 }
       );
     }
 
@@ -366,28 +353,27 @@ export async function GET(
     } catch (validationError) {
       const err = validationError as z.ZodError;
 
-      logger.warn("Validation failed", {
+      logger.warn('Validation failed', {
         correlationId,
         userId: user.userId,
         error: err.message,
       });
-      console.log(err.issues);
 
       return NextResponse.json(
         {
           success: false,
-          error: "Bad Request",
-          message: "Invalid parameters",
+          error: 'Bad Request',
+          message: 'Invalid parameters',
           details: err.issues,
           correlationId,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
     const { date, filename } = validatedParams;
 
-    logger.info("Metadata fetch request initiated", {
+    logger.info('Metadata fetch request initiated', {
       correlationId,
       userId: user.userId,
       date,
@@ -399,7 +385,7 @@ export async function GET(
     // ==========================================
     const cachedData = metadataCache.get(date, filename);
     if (cachedData) {
-      logger.info("Cache hit", {
+      logger.info('Cache hit', {
         correlationId,
         userId: user.userId,
         date,
@@ -418,10 +404,10 @@ export async function GET(
         {
           status: 200,
           headers: {
-            "Cache-Control": "private, max-age=300",
-            "X-Correlation-ID": correlationId,
+            'Cache-Control': 'private, max-age=300',
+            'X-Correlation-ID': correlationId,
           },
-        },
+        }
       );
     }
 
@@ -432,23 +418,20 @@ export async function GET(
     try {
       r2Config = getR2Config();
     } catch (configError) {
-      logger.error("R2 configuration error", {
+      logger.error('R2 configuration error', {
         correlationId,
         userId: user.userId,
-        error:
-          configError instanceof Error
-            ? configError.message
-            : "Configuration error",
+        error: configError instanceof Error ? configError.message : 'Configuration error',
       });
 
       return NextResponse.json(
         {
           success: false,
-          error: "Internal Server Error",
-          message: "Service configuration error",
+          error: 'Internal Server Error',
+          message: 'Service configuration error',
           correlationId,
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -460,33 +443,31 @@ export async function GET(
     let content: any;
     try {
       content = await r2CircuitBreaker.execute(() =>
-        withRetry(() => r2Service.getFileFromFolder(date, filename), 3, 1000),
+        withRetry(() => r2Service.getFileFromFolder(date, filename), 3, 1000)
       );
     } catch (fetchError) {
-      logger.error("Failed to fetch from R2", {
+      logger.error('Failed to fetch from R2', {
         correlationId,
         userId: user.userId,
         date,
         filename,
-        error:
-          fetchError instanceof Error ? fetchError.message : "Unknown error",
+        error: fetchError instanceof Error ? fetchError.message : 'Unknown error',
         duration: Date.now() - startTime,
       });
 
       const isCircuitBreakerOpen =
-        fetchError instanceof Error &&
-        fetchError.message.includes("Circuit breaker is OPEN");
+        fetchError instanceof Error && fetchError.message.includes('Circuit breaker is OPEN');
 
       return NextResponse.json(
         {
           success: false,
-          error: isCircuitBreakerOpen ? "Service Unavailable" : "Not Found",
+          error: isCircuitBreakerOpen ? 'Service Unavailable' : 'Not Found',
           message: isCircuitBreakerOpen
-            ? "Storage service temporarily unavailable. Please try again later."
+            ? 'Storage service temporarily unavailable. Please try again later.'
             : `File '${filename}' not found in folder '${date}'`,
           correlationId,
         },
-        { status: isCircuitBreakerOpen ? 503 : 404 },
+        { status: isCircuitBreakerOpen ? 503 : 404 }
       );
     }
 
@@ -501,22 +482,22 @@ export async function GET(
       // const MetadataSchema = z.object({ ... });
       // metadata = MetadataSchema.parse(metadata);
     } catch (parseError) {
-      logger.error("JSON parsing error", {
+      logger.error('JSON parsing error', {
         correlationId,
         userId: user.userId,
         date,
         filename,
-        error: parseError instanceof Error ? parseError.message : "Parse error",
+        error: parseError instanceof Error ? parseError.message : 'Parse error',
       });
 
       return NextResponse.json(
         {
           success: false,
-          error: "Internal Server Error",
-          message: "Failed to parse file content",
+          error: 'Internal Server Error',
+          message: 'Failed to parse file content',
           correlationId,
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
@@ -527,7 +508,7 @@ export async function GET(
 
     const duration = Date.now() - startTime;
 
-    logger.info("Metadata fetch successful", {
+    logger.info('Metadata fetch successful', {
       correlationId,
       userId: user.userId,
       date,
@@ -546,11 +527,11 @@ export async function GET(
       {
         status: 200,
         headers: {
-          "Cache-Control": "private, max-age=300",
-          "X-Correlation-ID": correlationId,
-          "X-Response-Time": `${duration}ms`,
+          'Cache-Control': 'private, max-age=300',
+          'X-Correlation-ID': correlationId,
+          'X-Response-Time': `${duration}ms`,
         },
-      },
+      }
     );
   } catch (error) {
     // ==========================================
@@ -558,9 +539,9 @@ export async function GET(
     // ==========================================
     const duration = Date.now() - startTime;
 
-    logger.error("Unhandled error", {
+    logger.error('Unhandled error', {
       correlationId,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
       duration,
     });
@@ -568,11 +549,11 @@ export async function GET(
     return NextResponse.json(
       {
         success: false,
-        error: "Internal Server Error",
-        message: "An unexpected error occurred",
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred',
         correlationId,
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

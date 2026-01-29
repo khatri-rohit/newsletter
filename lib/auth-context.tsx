@@ -11,6 +11,7 @@ import {
 } from 'firebase/auth';
 import { auth } from './firebase';
 import apiClient from './axios';
+import { logger } from './logger';
 
 interface AuthContextType {
     user: User | null;
@@ -55,7 +56,12 @@ async function notifyAuthWebhook(user: User, provider: string) {
             idToken,
         });
 
-        console.log('Auth webhook success:', response.data);
+        logger.info('Auth webhook notification sent', {
+            uid: user.uid,
+            email: user.email,
+            provider,
+            statusCode: response.status,
+        });
     } catch (error) {
         console.error('Failed to notify auth webhook:', error);
         // Don't throw - we don't want to break the auth flow
@@ -76,7 +82,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 try {
                     const idTokenResult = await user.getIdTokenResult();
                     setIsAdmin(idTokenResult.claims.role === "admin");
-                    console.log('[Auth] User admin status:', idTokenResult.claims.role === "admin");
+                    // console.log('[Auth] User admin status:', idTokenResult.claims.role === "admin");
                 } catch (error) {
                     console.error('[Auth] Error getting user token:', error);
                     setIsAdmin(false);
