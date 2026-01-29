@@ -32,6 +32,7 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
     const { isAdmin } = useAuth();
     const [viewCount, setViewCount] = useState(newsletter.views || 0);
     const [isTracking, setIsTracking] = useState(false);
+    const [scrollProgress, setScrollProgress] = useState(0);
 
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
     const articleSchema = generateArticleSchema(newsletter, baseUrl);
@@ -77,6 +78,68 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
         return () => clearTimeout(timer);
     }, [newsletter.id, isTracking]);
 
+    // Track scroll progress
+    useEffect(() => {
+        const updateScrollProgress = () => {
+            const article = document.querySelector('article');
+            if (!article) return;
+
+            const articleRect = article.getBoundingClientRect();
+            const windowHeight = window.innerHeight;
+
+            // Calculate how much of the article is visible
+            const articleHeight = articleRect.height;
+
+            // End tracking when article bottom reaches viewport top
+            const endTrackingPoint = articleHeight - windowHeight;
+
+            if (endTrackingPoint <= 0) {
+                // Article is smaller than viewport, show 100% progress
+                setScrollProgress(100);
+                return;
+            }
+
+            const scrollY = window.scrollY;
+            const articleStart = article.offsetTop;
+            const articleEnd = articleStart + endTrackingPoint;
+
+            if (scrollY < articleStart) {
+                setScrollProgress(0);
+            } else if (scrollY >= articleEnd) {
+                setScrollProgress(100);
+            } else {
+                const progress = ((scrollY - articleStart) / endTrackingPoint) * 100;
+                setScrollProgress(Math.min(100, Math.max(0, progress)));
+            }
+        };
+
+        // Throttle scroll events for better performance
+        let ticking = false;
+        const handleScroll = () => {
+            if (!ticking) {
+                requestAnimationFrame(() => {
+                    updateScrollProgress();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        };
+
+        // Initial calculation
+        updateScrollProgress();
+
+        // Add scroll listener
+        window.addEventListener('scroll', handleScroll, { passive: true });
+
+        // Update on window resize
+        window.addEventListener('resize', updateScrollProgress, { passive: true });
+
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+            window.removeEventListener('resize', updateScrollProgress);
+        };
+    }, []);
+
     const handleShare = async () => {
         const url = window.location.href;
 
@@ -115,6 +178,15 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
 
     return (
         <div className="flex flex-col bg-slate-50">
+            {/* Scroll Progress Bar */}
+            <div className="fixed top-0 left-0 right-0 z-50 h-2 bg-gray-200">
+                <div
+                    className={`h-full bg-black transition-all duration-150 ease-out ${scrollProgress !== 100 && 'rounded-r-full'}`}
+                    style={{ width: `${scrollProgress}%` }}
+                    aria-hidden="true"
+                />
+            </div>
+
             <ScrollTop />
             <script
                 type="application/ld+json"
