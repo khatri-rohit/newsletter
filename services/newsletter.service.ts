@@ -202,11 +202,11 @@ export class NewsletterService {
       const doc = snapshot.docs[0];
       const data = doc.data();
 
-      console.log('[NewsletterService] Newsletter found:', {
-        id: doc.id,
-        title: data.title,
-        status: data.status,
-      });
+      // console.log('[NewsletterService] Newsletter found:', {
+      //   id: doc.id,
+      //   title: data.title,
+      //   status: data.status,
+      // });
 
       return {
         id: doc.id,

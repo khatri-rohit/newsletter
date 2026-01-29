@@ -40,11 +40,11 @@ async function getNewsletter(slug: string): Promise<Newsletter | null> {
         const newsletterService = new NewsletterService();
         const newsletter = await newsletterService.getNewsletterBySlug(slug);
 
-        console.log('[getNewsletter] Newsletter found:', newsletter ? {
-            id: newsletter.id,
-            title: newsletter.title,
-            status: newsletter.status
-        } : 'null');
+        // console.log('[getNewsletter] Newsletter found:', newsletter ? {
+        //     id: newsletter.id,
+        //     title: newsletter.title,
+        //     status: newsletter.status
+        // } : 'null');
 
         // Only return published newsletters
         if (newsletter && newsletter.status === 'published') {
