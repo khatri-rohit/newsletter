@@ -2,12 +2,12 @@
 // AUTH WEBHOOK API - HANDLE USER AUTH EVENTS
 // ==========================================
 
-import { NextRequest, NextResponse } from "next/server";
-import * as admin from "firebase-admin";
-import { z } from "zod";
-import crypto from "crypto";
-import { getUserService } from "@/services/user.service";
-import { getEmailService } from "@/services/email.service";
+import { NextRequest, NextResponse } from 'next/server';
+import * as admin from 'firebase-admin';
+import { z } from 'zod';
+import crypto from 'crypto';
+import { getUserService } from '@/services/user.service';
+import { getEmailService } from '@/services/email.service';
 
 // ==========================================
 // INITIALIZE FIREBASE ADMIN (if not already)
@@ -19,7 +19,7 @@ if (!admin.apps.length) {
     : {
         projectId: process.env.FIREBASE_PROJECT_ID,
         clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
       };
 
   admin.initializeApp({
@@ -68,15 +68,15 @@ class Logger {
   }
 
   info(message: string, context: LogContext) {
-    this.log("INFO", message, context);
+    this.log('INFO', message, context);
   }
 
   warn(message: string, context: LogContext) {
-    this.log("WARN", message, context);
+    this.log('WARN', message, context);
   }
 
   error(message: string, context: LogContext) {
-    this.log("ERROR", message, context);
+    this.log('ERROR', message, context);
   }
 }
 
@@ -133,20 +133,18 @@ export async function POST(req: NextRequest) {
     // 1. RATE LIMITING
     // ==========================================
     const clientIp =
-      req.headers.get("x-forwarded-for") ||
-      req.headers.get("x-real-ip") ||
-      "unknown";
+      req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'unknown';
 
     if (!checkRateLimit(clientIp)) {
-      logger.warn("Rate limit exceeded", { correlationId });
+      logger.warn('Rate limit exceeded', { correlationId });
       return NextResponse.json(
         {
           success: false,
-          error: "Too Many Requests",
-          message: "Rate limit exceeded. Please try again later.",
+          error: 'Too Many Requests',
+          message: 'Rate limit exceeded. Please try again later.',
           correlationId,
         },
-        { status: 429 },
+        { status: 429 }
       );
     }
 
@@ -157,15 +155,15 @@ export async function POST(req: NextRequest) {
     try {
       body = await req.json();
     } catch {
-      logger.warn("Invalid JSON body", { correlationId });
+      logger.warn('Invalid JSON body', { correlationId });
       return NextResponse.json(
         {
           success: false,
-          error: "Bad Request",
-          message: "Invalid JSON body",
+          error: 'Bad Request',
+          message: 'Invalid JSON body',
           correlationId,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -174,7 +172,7 @@ export async function POST(req: NextRequest) {
       validatedData = AuthEventSchema.parse(body);
     } catch (validationError) {
       const err = validationError as z.ZodError;
-      logger.warn("Validation failed", {
+      logger.warn('Validation failed', {
         correlationId,
         error: err.message,
       });
@@ -182,12 +180,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: "Bad Request",
-          message: "Invalid request data",
+          error: 'Bad Request',
+          message: 'Invalid request data',
           details: err.issues,
           correlationId,
         },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -200,26 +198,26 @@ export async function POST(req: NextRequest) {
 
       // Ensure the token UID matches the claimed UID
       if (decodedToken.uid !== validatedData.uid) {
-        throw new Error("UID mismatch");
+        throw new Error('UID mismatch');
       }
     } catch (authError) {
-      logger.warn("Token verification failed", {
+      logger.warn('Token verification failed', {
         correlationId,
-        error: authError instanceof Error ? authError.message : "Unknown error",
+        error: authError instanceof Error ? authError.message : 'Unknown error',
       });
 
       return NextResponse.json(
         {
           success: false,
-          error: "Unauthorized",
-          message: "Invalid or expired token",
+          error: 'Unauthorized',
+          message: 'Invalid or expired token',
           correlationId,
         },
-        { status: 401 },
+        { status: 401 }
       );
     }
 
-    logger.info("Auth webhook triggered", {
+    logger.info('Auth webhook triggered', {
       correlationId,
       uid: validatedData.uid,
       email: validatedData.email,
@@ -229,8 +227,13 @@ export async function POST(req: NextRequest) {
     // ==========================================
     // 4. CHECK AND SET ADMIN ROLE (Strict Admin Check)
     // ==========================================
-    const ADMIN_EMAIL = "rohitkhatri111112@gmail.com";
-    const ADMIN_NAME = "Rohit Khatri";
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+    const ADMIN_NAME = process.env.ADMIN_NAME;
+
+    if (!ADMIN_EMAIL || !ADMIN_NAME) {
+      logger.error('Admin configuration missing', { correlationId });
+      throw new Error('Admin configuration not set');
+    }
 
     const isAdminUser =
       validatedData.email.toLowerCase() === ADMIN_EMAIL.toLowerCase() &&
@@ -239,21 +242,18 @@ export async function POST(req: NextRequest) {
     if (isAdminUser) {
       try {
         // Set admin custom claims in Firebase Auth
-        await admin
-          .auth()
-          .setCustomUserClaims(validatedData.uid, { role: "admin" });
+        await admin.auth().setCustomUserClaims(validatedData.uid, { role: 'admin' });
 
-        logger.info("Admin role assigned", {
+        logger.info('Admin role assigned', {
           correlationId,
           uid: validatedData.uid,
           email: validatedData.email,
         });
       } catch (claimError) {
-        logger.error("Failed to set admin claims", {
+        logger.error('Failed to set admin claims', {
           correlationId,
           uid: validatedData.uid,
-          error:
-            claimError instanceof Error ? claimError.message : "Unknown error",
+          error: claimError instanceof Error ? claimError.message : 'Unknown error',
         });
       }
     }
@@ -273,59 +273,55 @@ export async function POST(req: NextRequest) {
         photoURL: validatedData.photoURL,
         provider: validatedData.provider,
         ip: clientIp,
-        userAgent: req.headers.get("user-agent") || undefined,
+        userAgent: req.headers.get('user-agent') || undefined,
       });
 
       // Update role in Firestore if admin
       if (isAdminUser) {
-        await userService.updateUserRole(validatedData.uid, "admin");
-        logger.info("Admin role updated in Firestore", {
+        await userService.updateUserRole(validatedData.uid, 'admin');
+        logger.info('Admin role updated in Firestore', {
           correlationId,
           uid: validatedData.uid,
         });
       }
     } catch (serviceError) {
-      logger.error("User service error", {
+      logger.error('User service error', {
         correlationId,
         uid: validatedData.uid,
-        error:
-          serviceError instanceof Error
-            ? serviceError.message
-            : "Unknown error",
+        error: serviceError instanceof Error ? serviceError.message : 'Unknown error',
       });
 
       return NextResponse.json(
         {
           success: false,
-          error: "Internal Server Error",
-          message: "Failed to process user authentication",
+          error: 'Internal Server Error',
+          message: 'Failed to process user authentication',
           correlationId,
         },
-        { status: 500 },
+        { status: 500 }
       );
     }
 
     // ==========================================
     // 6. SEND APPROPRIATE EMAIL
     // ==========================================
-    const emailType = authResult.isNewUser ? "welcome" : "relogin";
+    const emailType = authResult.isNewUser ? 'welcome' : 'relogin';
 
     // Send email asynchronously (don't block response)
     (async () => {
       try {
-        const name =
-          validatedData.displayName || validatedData.email.split("@")[0];
+        const name = validatedData.displayName || validatedData.email.split('@')[0];
 
         if (authResult.isNewUser) {
           await emailService.sendWelcomeEmail(name, validatedData.email);
-          logger.info("Welcome email sent", {
+          logger.info('Welcome email sent', {
             correlationId,
             uid: validatedData.uid,
             email: validatedData.email,
           });
         } else {
           await emailService.sendReLoginEmail(name, validatedData.email);
-          logger.info("Re-login email sent", {
+          logger.info('Re-login email sent', {
             correlationId,
             uid: validatedData.uid,
             email: validatedData.email,
@@ -333,12 +329,11 @@ export async function POST(req: NextRequest) {
         }
       } catch (emailError) {
         // Log error but don't fail the request
-        logger.error("Email sending failed", {
+        logger.error('Email sending failed', {
           correlationId,
           uid: validatedData.uid,
           email: validatedData.email,
-          error:
-            emailError instanceof Error ? emailError.message : "Unknown error",
+          error: emailError instanceof Error ? emailError.message : 'Unknown error',
         });
       }
     })();
@@ -348,7 +343,7 @@ export async function POST(req: NextRequest) {
     // ==========================================
     const duration = Date.now() - startTime;
 
-    logger.info("Auth webhook processed successfully", {
+    logger.info('Auth webhook processed successfully', {
       correlationId,
       uid: validatedData.uid,
       email: validatedData.email,
@@ -375,10 +370,10 @@ export async function POST(req: NextRequest) {
       {
         status: 200,
         headers: {
-          "X-Correlation-ID": correlationId,
-          "X-Response-Time": `${duration}ms`,
+          'X-Correlation-ID': correlationId,
+          'X-Response-Time': `${duration}ms`,
         },
-      },
+      }
     );
   } catch (error) {
     // ==========================================
@@ -386,20 +381,20 @@ export async function POST(req: NextRequest) {
     // ==========================================
     const duration = Date.now() - startTime;
 
-    logger.error("Unhandled error in auth webhook", {
+    logger.error('Unhandled error in auth webhook', {
       correlationId,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: error instanceof Error ? error.message : 'Unknown error',
       duration,
     });
 
     return NextResponse.json(
       {
         success: false,
-        error: "Internal Server Error",
-        message: "An unexpected error occurred",
+        error: 'Internal Server Error',
+        message: 'An unexpected error occurred',
         correlationId,
       },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -410,8 +405,8 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    status: "ok",
-    service: "auth-webhook",
+    status: 'ok',
+    service: 'auth-webhook',
     timestamp: new Date().toISOString(),
   });
 }
