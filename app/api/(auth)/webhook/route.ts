@@ -227,8 +227,8 @@ export async function POST(req: NextRequest) {
     // ==========================================
     // 4. CHECK AND SET ADMIN ROLE (Strict Admin Check)
     // ==========================================
-    const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
-    const ADMIN_NAME = process.env.ADMIN_NAME;
+    const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'rohitkhatri111112@gmail.com';
+    const ADMIN_NAME = process.env.ADMIN_NAME || 'Rohit Khatri';
 
     if (!ADMIN_EMAIL || !ADMIN_NAME) {
       logger.error('Admin configuration missing', { correlationId });
