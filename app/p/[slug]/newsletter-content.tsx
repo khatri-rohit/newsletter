@@ -7,7 +7,13 @@ import { Header } from '@/components/header';
 import Footer from '@/components/footer';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
-import { Calendar, Clock, Eye, Share2 } from 'lucide-react';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Calendar, Clock, Eye, Share2, Twitter, Facebook, Linkedin, Mail, Link as LinkIcon, MessageCircle } from 'lucide-react';
 import { Newsletter } from '@/services/types';
 import {
     Breadcrumb,
@@ -169,6 +175,41 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
         }
     };
 
+    const handleSocialShare = (platform: string) => {
+        const url = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent(newsletter?.title || '');
+        const text = encodeURIComponent(newsletter?.excerpt || '');
+
+        let shareUrl = '';
+
+        switch (platform) {
+            case 'twitter':
+                shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
+                break;
+            case 'facebook':
+                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                break;
+            case 'linkedin':
+                shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+                break;
+            case 'whatsapp':
+                shareUrl = `https://wa.me/?text=${title}%20${url}`;
+                break;
+            case 'email':
+                shareUrl = `mailto:?subject=${title}&body=${text}%0A%0A${url}`;
+                break;
+            case 'copy':
+                navigator.clipboard.writeText(window.location.href)
+                    .then(() => toast.success('Link copied to clipboard!'))
+                    .catch(() => toast.error('Failed to copy link'));
+                return;
+        }
+
+        if (shareUrl) {
+            window.open(shareUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
     const formatDate = (timestamp: unknown): string => {
         return formatTimestamp(timestamp, {
             year: 'numeric',
@@ -257,32 +298,75 @@ export function NewsletterContent({ newsletter }: NewsletterContentProps) {
                         </h1>
 
                         {/* Meta Information */}
-                        <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600 mb-4">
-                            <span className="flex items-center gap-1.5">
-                                <Calendar className="h-4 w-4" aria-hidden="true" />
-                                <time dateTime={formatDate(newsletter.publishedAt || newsletter.createdAt)}>
-                                    {formatDate(newsletter.publishedAt || newsletter.createdAt)}
-                                </time>
-                            </span>
-                            {newsletter.authorName && (
+                        <div className="flex flex-wrap items-center justify-between gap-4 text-sm text-gray-600 mb-4">
+                            <div className="flex flex-wrap items-center gap-4">
                                 <span className="flex items-center gap-1.5">
-                                    By {newsletter.authorName}
+                                    <Calendar className="h-4 w-4" aria-hidden="true" />
+                                    <time dateTime={formatDate(newsletter.publishedAt || newsletter.createdAt)}>
+                                        {formatDate(newsletter.publishedAt || newsletter.createdAt)}
+                                    </time>
                                 </span>
-                            )}
-                            {newsletter.metadata && (
-                                <>
+                                {newsletter.authorName && (
                                     <span className="flex items-center gap-1.5">
-                                        <Clock className="h-4 w-4" aria-hidden="true" />
-                                        {newsletter.metadata.readTime} min read
+                                        By {newsletter.authorName}
                                     </span>
-                                    {isAdmin && viewCount > 0 && (
+                                )}
+                                {newsletter.metadata && (
+                                    <>
                                         <span className="flex items-center gap-1.5">
-                                            <Eye className="h-4 w-4" aria-hidden="true" />
-                                            {formatNumber(viewCount)} views
+                                            <Clock className="h-4 w-4" aria-hidden="true" />
+                                            {newsletter.metadata.readTime} min read
                                         </span>
-                                    )}
-                                </>
-                            )}
+                                        {isAdmin && viewCount > 0 && (
+                                            <span className="flex items-center gap-1.5">
+                                                <Eye className="h-4 w-4" aria-hidden="true" />
+                                                {formatNumber(viewCount)} views
+                                            </span>
+                                        )}
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Share Dropdown */}
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="gap-2"
+                                        aria-label="Share article"
+                                    >
+                                        <Share2 className="h-4 w-4" aria-hidden="true" />
+                                        Share
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                    <DropdownMenuItem onClick={() => handleSocialShare('twitter')} className="cursor-pointer">
+                                        <Twitter className="h-4 w-4 mr-2" />
+                                        Share on Twitter
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSocialShare('facebook')} className="cursor-pointer">
+                                        <Facebook className="h-4 w-4 mr-2" />
+                                        Share on Facebook
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSocialShare('linkedin')} className="cursor-pointer">
+                                        <Linkedin className="h-4 w-4 mr-2" />
+                                        Share on LinkedIn
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSocialShare('whatsapp')} className="cursor-pointer">
+                                        <MessageCircle className="h-4 w-4 mr-2" />
+                                        Share on WhatsApp
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSocialShare('email')} className="cursor-pointer">
+                                        <Mail className="h-4 w-4 mr-2" />
+                                        Share via Email
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleSocialShare('copy')} className="cursor-pointer">
+                                        <LinkIcon className="h-4 w-4 mr-2" />
+                                        Copy Link
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
                         </div>
 
                         <Separator className="my-6" />
