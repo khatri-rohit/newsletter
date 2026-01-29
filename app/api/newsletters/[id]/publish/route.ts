@@ -5,6 +5,14 @@ import { getEmailQueueService } from '@/services/email-queue.service';
 import { getEmailTrackingService } from '@/services/email-tracking.service';
 import { getUserService } from '@/services/user.service';
 
+// ==========================================
+// ROUTE CONFIGURATION
+// ==========================================
+// maxDuration: Maximum function execution time for email sending
+// dynamic: Ensures the route is not cached
+export const maxDuration = 60;
+export const dynamic = 'force-dynamic';
+
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
   admin.initializeApp({
@@ -108,86 +116,89 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     console.log(`[${correlationId}] Created ${trackingPromises.length} tracking records`);
 
     // Step 4: Send newsletter to all active subscribers using queue service
+    // IMPORTANT: In serverless environments (Vercel), we MUST await email sending
+    // because background tasks are killed when the response is returned.
     console.log(`[${correlationId}] Starting email queue processing...`);
 
-    // Start sending emails asynchronously (non-blocking)
-    // This allows the API to respond immediately while emails are being sent
-    const sendEmails = async () => {
-      try {
-        const stats = await emailQueueService.sendNewsletterToSubscribers(newsletter, {
-          batchSize: 1, // Send one email at a time for maximum deliverability
-          delayBetweenEmails: 10000, // 10 seconds between each email
-          maxRetries: 3, // Retry failed emails up to 3 times
-          retryDelay: 60000, // Wait 60 seconds before retry
-          onProgress: (progressStats) => {
-            console.log(
-              `[${correlationId}] Email progress: ${progressStats.sent}/${progressStats.total} sent, ` +
-                `${progressStats.failed} failed, ${progressStats.bounced} bounced`
-            );
-          },
-          onComplete: (finalStats) => {
-            console.log(`[${correlationId}] Email sending complete:`, finalStats);
-            console.log(
-              `[${correlationId}] Success rate: ${finalStats.successRate}% ` +
-                `(${finalStats.sent}/${finalStats.total})`
-            );
-          },
-          onError: async (error, item) => {
-            console.error(
-              `[${correlationId}] Error sending to ${item.recipient.email}:`,
+    let emailStats = { sent: 0, failed: 0, total: subscriberCount };
+
+    try {
+      const stats = await emailQueueService.sendNewsletterToSubscribers(newsletter, {
+        batchSize: 5, // Send 5 emails in parallel for faster processing
+        delayBetweenEmails: 1000, // 1 second between batches (reduced for serverless timeout)
+        maxRetries: 2, // Reduced retries to stay within timeout
+        retryDelay: 5000, // 5 seconds before retry (reduced for serverless)
+        onProgress: (progressStats) => {
+          console.log(
+            `[${correlationId}] Email progress: ${progressStats.sent}/${progressStats.total} sent, ` +
+              `${progressStats.failed} failed, ${progressStats.bounced} bounced`
+          );
+        },
+        onComplete: (finalStats) => {
+          console.log(`[${correlationId}] Email sending complete:`, finalStats);
+          console.log(
+            `[${correlationId}] Success rate: ${finalStats.successRate}% ` +
+              `(${finalStats.sent}/${finalStats.total})`
+          );
+        },
+        onError: async (error, item) => {
+          console.error(
+            `[${correlationId}] Error sending to ${item.recipient.email}:`,
+            error.message
+          );
+
+          // Update tracking for failed emails
+          if (item.status === 'bounced') {
+            await emailTrackingService.markAsBounced(
+              item.newsletterId,
+              item.recipient.email,
               error.message
             );
+          } else {
+            await emailTrackingService.markAsFailed(
+              item.newsletterId,
+              item.recipient.email,
+              error.message
+            );
+          }
+        },
+      });
 
-            // Update tracking for failed emails
-            if (item.status === 'bounced') {
-              await emailTrackingService.markAsBounced(
-                item.newsletterId,
-                item.recipient.email,
-                error.message
-              );
-            } else {
-              await emailTrackingService.markAsFailed(
-                item.newsletterId,
-                item.recipient.email,
-                error.message
-              );
-            }
-          },
-        });
+      emailStats = {
+        sent: stats.sent,
+        failed: stats.failed + stats.bounced,
+        total: stats.total,
+      };
 
-        // Update tracking records for successfully sent emails
-        const sentItems = emailQueueService.getQueue().filter((item) => item.status === 'sent');
-        for (const item of sentItems) {
-          await emailTrackingService.markAsSent(item.newsletterId, item.recipient.email);
-        }
-
-        console.log(`[${correlationId}] All emails processed. Final stats:`, stats);
-      } catch (error) {
-        console.error(`[${correlationId}] Fatal error in email sending:`, error);
+      // Update tracking records for successfully sent emails
+      const sentItems = emailQueueService.getQueue().filter((item) => item.status === 'sent');
+      for (const item of sentItems) {
+        await emailTrackingService.markAsSent(item.newsletterId, item.recipient.email);
       }
-    };
 
-    // Trigger email sending in background
-    sendEmails().catch((err) => {
-      console.error(`[${correlationId}] Unhandled error in background email task:`, err);
-    });
+      console.log(`[${correlationId}] All emails processed. Final stats:`, stats);
+    } catch (emailError) {
+      console.error(`[${correlationId}] Error in email sending:`, emailError);
+      // Continue with response even if email sending fails partially
+    }
 
-    // Return immediately with success response
+    // Return success response with actual email stats
     const processingTime = Date.now() - startTime;
     console.log(
-      `[${correlationId}] API response sent (${processingTime}ms). Emails are being sent in background.`
+      `[${correlationId}] API response sent (${processingTime}ms). Email stats:`,
+      emailStats
     );
 
     return NextResponse.json({
       success: true,
       data: newsletter,
-      message: `Newsletter published successfully. Sending to ${subscriberCount} subscribers in background.`,
+      message: `Newsletter published successfully. Emails sent: ${emailStats.sent}/${emailStats.total}`,
       correlationId,
       stats: {
         subscribers: subscriberCount,
-        emailsQueued: subscriberCount,
+        emailsSent: emailStats.sent,
+        emailsFailed: emailStats.failed,
         processingTime,
-        estimatedCompletionTime: Math.ceil(subscriberCount * 10), // seconds
       },
     });
   } catch (error) {
