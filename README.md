@@ -67,6 +67,24 @@ This application follows strict anti-"AI slop" principles:
 
 📚 **Full Documentation**: See [docs/CRON_JOBS.md](docs/CRON_JOBS.md)
 
+### ⚡ Redis Caching System
+
+- ✅ **Server-Side Caching**: Redis-backed caching for improved performance and scalability
+- ✅ **Automatic Cache Invalidation**: Cache automatically clears when newsletters are created, updated, or deleted
+- ✅ **Smart Fallback**: Gracefully falls back to in-memory cache if Redis is unavailable
+- ✅ **Configurable TTL**: Different cache durations for different data types
+- ✅ **Pattern-Based Invalidation**: Efficiently invalidates related cache entries
+- ✅ **Cache Headers**: HTTP cache headers for CDN and browser caching
+- ✅ **Newsletter Caching**: Individual newsletters, lists, and top newsletters cached for fast retrieval
+- ✅ **View Tracking**: Non-blocking view increment with deduplication
+
+**Cache Strategy**:
+
+- Individual newsletters: 5 minutes TTL
+- Newsletter lists: 5 minutes TTL
+- Top newsletters: 10 minutes TTL
+- Cache invalidates on: create, update, delete, publish operations
+
 ### UI Components
 
 - ✅ Production-grade shadcn/ui components
@@ -110,6 +128,8 @@ newsletter/
 ├── lib/
 │   ├── firebase.ts         # Firebase configuration
 │   ├── auth-context.tsx    # Auth state management
+│   ├── redis.ts            # Redis client & connection management
+│   ├── cache.ts            # Redis-backed caching utility
 │   └── utils.ts            # Utility functions
 ├── services/
 │   ├── email.service.ts           # Email sending (Nodemailer)
@@ -151,6 +171,7 @@ newsletter/
    - `GMAIL_*`: Email service configuration
    - `CRON_SECRET`: Secret token for cron job authorization (generate with: `openssl rand -hex 32`)
    - `NEXT_PUBLIC_BASE_URL`: Your application URL
+   - `REDIS_*`: Redis server configuration (host, port, username, password)
 
    📚 **Setup Guide**: See [docs/PRE_DEPLOYMENT.md](docs/PRE_DEPLOYMENT.md) for detailed configuration
 

@@ -89,7 +89,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
     // Check cache first
     const cacheKey = cacheKeys.newsletterBySlug(slug);
-    const cachedNewsletter = cache.get(cacheKey) as Newsletter | undefined;
+    const cachedNewsletter = await cache.get<Newsletter>(cacheKey);
 
     if (cachedNewsletter) {
       // Still increment views asynchronously with deduplication
@@ -132,7 +132,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     }
 
     // Cache the result (5 minutes TTL)
-    cache.set(cacheKey, newsletter, 5 * 60 * 1000);
+    await cache.set(cacheKey, newsletter, 5 * 60 * 1000);
 
     // Increment views asynchronously (fire and forget) with deduplication
     if (newsletter.id) {

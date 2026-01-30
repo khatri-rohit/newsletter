@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { NewsletterService } from '@/services/newsletter.service';
+import { cache, cacheKeys } from '@/lib/cache';
 
 const newsletterService = new NewsletterService();
 
@@ -24,7 +25,21 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Check cache first
+    const cacheKey = cacheKeys.newslettersTop(limit, excludeId);
+    const cachedNewsletters = await cache.get(cacheKey);
+
+    if (cachedNewsletters) {
+      return NextResponse.json({
+        success: true,
+        data: cachedNewsletters,
+      });
+    }
+
     const newsletters = await newsletterService.getTopNewslettersByViews(limit, excludeId);
+
+    // Cache for 10 minutes
+    await cache.set(cacheKey, newsletters, 10 * 60 * 1000);
 
     return NextResponse.json({
       success: true,

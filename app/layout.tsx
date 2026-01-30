@@ -12,6 +12,8 @@ const newsreader = Newsreader({
   subsets: ["latin"],
   display: "swap",
   weight: ["300", "400", "600", "700"],
+  preload: true,
+  fallback: ['Georgia', 'serif'],
 });
 
 const ibmPlexMono = IBM_Plex_Mono({
@@ -19,6 +21,8 @@ const ibmPlexMono = IBM_Plex_Mono({
   subsets: ["latin"],
   display: "swap",
   weight: ["400", "500", "600"],
+  preload: true,
+  fallback: ['Courier New', 'monospace'],
 });
 
 export const metadata: Metadata = {
@@ -118,10 +122,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Critical Resource Hints */}
         <link rel="dns-prefetch" href="https://firebasestorage.googleapis.com" />
-        <link rel="preconnect" href="https://firebasestorage.googleapis.com" />
+        <link rel="dns-prefetch" href="https://pub-80b14eac0e644afab28d83edb15a62be.r2.dev" />
+        <link rel="dns-prefetch" href="https://www.googletagmanager.com" />
+        <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://pub-80b14eac0e644afab28d83edb15a62be.r2.dev" crossOrigin="anonymous" />
+
+        {/* PWA Theme */}
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+        {/* Structured Data */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }}

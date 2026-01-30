@@ -2,6 +2,7 @@
 import * as admin from 'firebase-admin';
 import { Newsletter, CreateNewsletterInput, UpdateNewsletterInput } from './types';
 import { getFirebaseAdmin } from '@/lib/firebase-admin';
+import { cacheInvalidation } from '@/lib/cache';
 
 /**
  * Newsletter Service
@@ -81,10 +82,15 @@ export class NewsletterService {
 
       const docRef = await this.newslettersCollection.add(newsletterData);
 
-      return {
+      const newsletter = {
         id: docRef.id,
         ...newsletterData,
       } as Newsletter;
+
+      // Invalidate newsletter list caches
+      await cacheInvalidation.invalidateNewsletterLists();
+
+      return newsletter;
     } catch (error) {
       console.error('Error creating newsletter:', error);
       throw new Error('Failed to create newsletter');
@@ -154,10 +160,15 @@ export class NewsletterService {
       await docRef.update(filteredUpdates);
 
       const updatedDoc = await docRef.get();
-      return {
+      const newsletter = {
         id: updatedDoc.id,
         ...updatedDoc.data(),
       } as Newsletter;
+
+      // Invalidate cache for this newsletter and lists
+      await cacheInvalidation.invalidateNewsletter(id, newsletter.slug);
+
+      return newsletter;
     } catch (error) {
       console.error('Error updating newsletter:', error);
       throw new Error('Failed to update newsletter');
@@ -289,6 +300,9 @@ export class NewsletterService {
       // Delete the newsletter document
       await this.newslettersCollection.doc(id).delete();
 
+      // Invalidate cache
+      await cacheInvalidation.invalidateNewsletter(id, newsletter.slug);
+
       console.log(
         `[NewsletterService] Successfully deleted newsletter ${id} and cleaned up resources`
       );
@@ -404,10 +418,15 @@ export class NewsletterService {
       });
 
       const updatedDoc = await docRef.get();
-      return {
+      const newsletter = {
         id: updatedDoc.id,
         ...updatedDoc.data(),
       } as Newsletter;
+
+      // Invalidate cache for this newsletter and all lists
+      await cacheInvalidation.invalidateNewsletter(id, newsletter.slug);
+
+      return newsletter;
     } catch (error) {
       console.error('Error publishing newsletter:', error);
       throw new Error('Failed to publish newsletter');

@@ -1,9 +1,17 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type {
+import {
     User,
+    onAuthStateChanged,
+    signInWithPopup,
+    GoogleAuthProvider,
+    GithubAuthProvider,
+    signOut as firebaseSignOut,
 } from 'firebase/auth';
+import { auth } from './firebase';
+import apiClient from './axios';
+import { logger } from './logger';
 import { FirebaseError } from 'firebase/app';
 
 interface AuthContextType {
@@ -106,9 +114,6 @@ export const useAuth = () => {
 
 async function notifyAuthWebhook(user: User, provider: string) {
     try {
-        const { default: apiClient } = await import('./axios');
-        const { logger } = await import('./logger');
-
         const idToken = await user.getIdToken();
 
         const response = await apiClient.post('/webhook', {
@@ -138,52 +143,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
-        let unsubscribe: (() => void) | undefined;
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            setUser(user);
 
-        // Lazy load Firebase auth only on client side
-        const initAuth = async () => {
-            try {
-                const { auth } = await import('./firebase');
-                const { onAuthStateChanged } = await import('firebase/auth');
-
-                unsubscribe = onAuthStateChanged(auth, async (user) => {
-                    setUser(user);
-
-                    if (user) {
-                        // Check admin status
-                        try {
-                            const idTokenResult = await user.getIdTokenResult();
-                            setIsAdmin(idTokenResult.claims.role === "admin");
-                        } catch (error) {
-                            console.error('[Auth] Error getting user token:', error);
-                            setIsAdmin(false);
-                        }
-                    } else {
-                        setIsAdmin(false);
-                    }
-
-                    setLoading(false);
-                });
-            } catch (error) {
-                console.error('[Auth] Error initializing auth:', error);
-                setLoading(false);
+            if (user) {
+                // Check admin status
+                try {
+                    const idTokenResult = await user.getIdTokenResult();
+                    setIsAdmin(idTokenResult.claims.role === "admin");
+                    // console.log('[Auth] User admin status:', idTokenResult.claims.role === "admin");
+                } catch (error) {
+                    console.error('[Auth] Error getting user token:', error);
+                    setIsAdmin(false);
+                }
+            } else {
+                setIsAdmin(false);
             }
-        };
 
-        initAuth();
+            setLoading(false);
+        });
 
-        return () => {
-            if (unsubscribe) {
-                unsubscribe();
-            }
-        };
+        return unsubscribe;
     }, []);
 
     const signInWithGoogle = async () => {
         try {
-            const { auth } = await import('./firebase');
-            const { signInWithPopup, GoogleAuthProvider } = await import('firebase/auth');
-
             const provider = new GoogleAuthProvider();
             const result = await signInWithPopup(auth, provider);
 
@@ -195,7 +179,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const authError = getAuthErrorMessage(error);
             console.error('Error signing in with Google:', authError);
 
-            const { logger } = await import('./logger');
             logger.error('Google sign-in failed', {
                 code: authError.code,
                 message: authError.message,
@@ -207,9 +190,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signInWithGithub = async () => {
         try {
-            const { auth } = await import('./firebase');
-            const { signInWithPopup, GithubAuthProvider } = await import('firebase/auth');
-
             const provider = new GithubAuthProvider();
             const result = await signInWithPopup(auth, provider);
 
@@ -221,7 +201,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const authError = getAuthErrorMessage(error);
             console.error('Error signing in with Github:', authError);
 
-            const { logger } = await import('./logger');
             logger.error('GitHub sign-in failed', {
                 code: authError.code,
                 message: authError.message,
@@ -233,9 +212,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const signOut = async () => {
         try {
-            const { auth } = await import('./firebase');
-            const { signOut: firebaseSignOut } = await import('firebase/auth');
-
             await firebaseSignOut(auth);
             console.log('[Auth] Sign-out successful');
         } catch (error) {
