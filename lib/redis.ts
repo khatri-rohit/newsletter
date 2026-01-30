@@ -40,7 +40,13 @@ export async function getRedisClient(): Promise<RedisClient> {
         socket: {
           host: process.env.REDIS_HOST || 'localhost',
           port: parseInt(process.env.REDIS_PORT || '6379'),
+          connectTimeout: 5000, // 5 second timeout
           reconnectStrategy: (retries) => {
+            // Stop reconnecting after 3 attempts
+            if (retries > 3) {
+              console.log('[Redis] Max reconnection attempts reached, giving up');
+              return false;
+            }
             // Exponential backoff with max 3 seconds
             const delay = Math.min(retries * 100, 3000);
             console.log(`[Redis] Reconnecting in ${delay}ms (attempt ${retries})...`);
