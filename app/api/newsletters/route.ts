@@ -16,6 +16,51 @@ if (admin.apps.length === 0) {
 
 const newsletterService = new NewsletterService();
 
+async function authenticate(
+  req: NextRequest
+): Promise<{ userId: string; role: string; email?: string }> {
+  // Extract token from Authorization header
+  const authHeader = req.headers.get('authorization');
+  if (!authHeader?.startsWith('Bearer ')) {
+    throw new Error('Missing or invalid authorization header');
+  }
+
+  const token = authHeader.substring(7);
+
+  if (!token) {
+    throw new Error('Missing authentication token');
+  }
+
+  try {
+    // Verify the Firebase ID token
+    const decodedToken = await admin.auth().verifyIdToken(token);
+
+    // Extract user information from the decoded token
+    const userId = decodedToken.uid;
+    const email = decodedToken.email;
+
+    const role = (decodedToken.role as string) || 'user';
+
+    return {
+      userId,
+      email,
+      role,
+    };
+  } catch (error) {
+    if (error instanceof Error) {
+      // Provide specific error messages for common Firebase Auth errors
+      if (error.message.includes('expired')) {
+        throw new Error('Token has expired');
+      }
+      if (error.message.includes('invalid')) {
+        throw new Error('Invalid authentication token');
+      }
+      throw new Error(`Authentication failed: ${error.message}`);
+    }
+    throw new Error('Authentication failed');
+  }
+}
+
 /**
  * GET /api/newsletters
  * List newsletters with filters
@@ -28,22 +73,36 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const startAfter = searchParams.get('startAfter');
 
+    if (status !== 'published') {
+      const { role } = await authenticate(request);
+      if (role !== 'admin') {
+        return NextResponse.json(
+          {
+            success: false,
+            error: 'Forbidden - Admin access required',
+            message: 'Admin access required',
+          },
+          { status: 403 }
+        );
+      }
+    }
+
     // Create cache key based on filters
     const cacheKey = cacheKeys.newslettersList(status || undefined, authorId || undefined);
 
     // Check cache first (only for published newsletters without pagination)
-    if (status === 'published' && !startAfter) {
-      const cachedResult = await cache.get(cacheKey);
-      if (cachedResult) {
-        const response = NextResponse.json({
-          success: true,
-          data: cachedResult,
-        });
-        response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-        response.headers.set('X-Cache', 'HIT');
-        return response;
-      }
-    }
+    // if (status === 'published' && !startAfter) {
+    //   const cachedResult = await cache.get(cacheKey);
+    //   if (cachedResult) {
+    //     const response = NextResponse.json({
+    //       success: true,
+    //       data: cachedResult,
+    //     });
+    //     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    //     response.headers.set('X-Cache', 'HIT');
+    //     return response;
+    //   }
+    // }
 
     const result = await newsletterService.listNewsletters({
       status: status || undefined,

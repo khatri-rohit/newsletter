@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import { NewsletterService } from '@/services/newsletter.service';
 import { cache, cacheKeys } from '@/lib/cache';
@@ -29,12 +30,12 @@ export async function GET(request: NextRequest) {
     const cacheKey = cacheKeys.newslettersTop(limit, excludeId);
     const cachedNewsletters = await cache.get(cacheKey);
 
-    if (cachedNewsletters) {
-      return NextResponse.json({
-        success: true,
-        data: cachedNewsletters,
-      });
-    }
+    // if (cachedNewsletters) {
+    //   return NextResponse.json({
+    //     success: true,
+    //     data: cachedNewsletters,
+    //   });
+    // }
 
     const newsletters = await newsletterService.getTopNewslettersByViews(limit, excludeId);
 

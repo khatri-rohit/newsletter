@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { NextRequest, NextResponse } from 'next/server';
 import * as admin from 'firebase-admin';
 import { NewsletterService } from '@/services/newsletter.service';
@@ -28,12 +29,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const cacheKey = cacheKeys.newsletter(id);
     const cachedNewsletter = await cache.get(cacheKey);
 
-    if (cachedNewsletter) {
-      return NextResponse.json({
-        success: true,
-        data: cachedNewsletter,
-      });
-    }
+    // if (cachedNewsletter) {
+    //   return NextResponse.json({
+    //     success: true,
+    //     data: cachedNewsletter,
+    //   });
+    // }
 
     const newsletter = await newsletterService.getNewsletter(id);
 
