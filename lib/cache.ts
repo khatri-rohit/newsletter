@@ -4,12 +4,6 @@
 
 import { getRedisClient } from './redis';
 
-interface CacheEntry<T> {
-  data: T;
-  timestamp: number;
-  ttl: number;
-}
-
 /**
  * Promise wrapper with timeout
  */
@@ -23,21 +17,21 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
 }
 
 class CacheManager {
-  private memoryCache: Map<string, CacheEntry<unknown>>;
   private redisAvailable: boolean | null = null; // null = not checked yet
   private redisCheckInProgress: boolean = false;
-
-  constructor() {
-    this.memoryCache = new Map();
-  }
+  private redisCheckedAt: number = 0;
+  private readonly redisRetryIntervalMs = 30_000;
 
   /**
    * Check if Redis is available (with caching to avoid repeated checks)
    */
   private async checkRedisAvailable(): Promise<boolean> {
-    // Return cached result if we've already checked
+    // Return cached result if it's still within the retry window
     if (this.redisAvailable !== null) {
-      return this.redisAvailable;
+      const elapsed = Date.now() - this.redisCheckedAt;
+      if (this.redisAvailable === true || elapsed < this.redisRetryIntervalMs) {
+        return this.redisAvailable;
+      }
     }
 
     // Prevent multiple simultaneous checks
@@ -51,14 +45,16 @@ class CacheManager {
       const client = await withTimeout(getRedisClient(), 3000); // 3 second timeout
       await withTimeout(client.ping(), 2000); // 2 second timeout for ping
       this.redisAvailable = true;
+      this.redisCheckedAt = Date.now();
       console.log('[Cache] Redis is available, using Redis for caching');
       return true;
     } catch (error) {
       console.log(
-        '[Cache] Redis not available, using in-memory cache:',
+        '[Cache] Redis not available, caching disabled:',
         error instanceof Error ? error.message : 'Unknown error'
       );
       this.redisAvailable = false;
+      this.redisCheckedAt = Date.now();
       return false;
     } finally {
       this.redisCheckInProgress = false;
@@ -72,25 +68,15 @@ class CacheManager {
     try {
       const useRedis = await this.checkRedisAvailable();
 
-      if (useRedis) {
-        const client = await getRedisClient();
-        const ttlSeconds = Math.ceil(ttl / 1000);
-        await withTimeout(client.setEx(key, ttlSeconds, JSON.stringify(data)), 3000);
-      } else {
-        this.memoryCache.set(key, {
-          data,
-          timestamp: Date.now(),
-          ttl,
-        });
+      if (!useRedis) {
+        return;
       }
+
+      const client = await getRedisClient();
+      const ttlSeconds = Math.ceil(ttl / 1000);
+      await withTimeout(client.setEx(key, ttlSeconds, JSON.stringify(data)), 3000);
     } catch (error) {
       console.error('[Cache] Error setting cache:', error);
-      // Fallback to memory cache
-      this.memoryCache.set(key, {
-        data,
-        timestamp: Date.now(),
-        ttl,
-      });
     }
   }
 
@@ -101,29 +87,16 @@ class CacheManager {
     try {
       const useRedis = await this.checkRedisAvailable();
 
-      if (useRedis) {
-        const client = await getRedisClient();
-        const value = await withTimeout(client.get(key), 3000);
-        if (value) {
-          return JSON.parse(value) as T;
-        }
+      if (!useRedis) {
         return null;
-      } else {
-        const entry = this.memoryCache.get(key);
-
-        if (!entry) {
-          return null;
-        }
-
-        const age = Date.now() - entry.timestamp;
-
-        if (age > entry.ttl) {
-          this.memoryCache.delete(key);
-          return null;
-        }
-
-        return entry.data as T;
       }
+
+      const client = await getRedisClient();
+      const value = await withTimeout(client.get(key), 3000);
+      if (value) {
+        return JSON.parse(value) as T;
+      }
+      return null;
     } catch (error) {
       console.error('[Cache] Error getting cache:', error);
       return null;
@@ -137,26 +110,13 @@ class CacheManager {
     try {
       const useRedis = await this.checkRedisAvailable();
 
-      if (useRedis) {
-        const client = await getRedisClient();
-        const exists = await withTimeout(client.exists(key), 3000);
-        return exists === 1;
-      } else {
-        const entry = this.memoryCache.get(key);
-
-        if (!entry) {
-          return false;
-        }
-
-        const age = Date.now() - entry.timestamp;
-
-        if (age > entry.ttl) {
-          this.memoryCache.delete(key);
-          return false;
-        }
-
-        return true;
+      if (!useRedis) {
+        return false;
       }
+
+      const client = await getRedisClient();
+      const exists = await withTimeout(client.exists(key), 3000);
+      return exists === 1;
     } catch (error) {
       console.error('[Cache] Error checking cache:', error);
       return false;
@@ -170,16 +130,14 @@ class CacheManager {
     try {
       const useRedis = await this.checkRedisAvailable();
 
-      if (useRedis) {
-        const client = await getRedisClient();
-        await withTimeout(client.del(key), 3000);
-      } else {
-        this.memoryCache.delete(key);
+      if (!useRedis) {
+        return;
       }
+
+      const client = await getRedisClient();
+      await withTimeout(client.del(key), 3000);
     } catch (error) {
       console.error('[Cache] Error deleting cache:', error);
-      // Also try memory cache as fallback
-      this.memoryCache.delete(key);
     }
   }
 
@@ -191,28 +149,15 @@ class CacheManager {
     try {
       const useRedis = await this.checkRedisAvailable();
 
-      if (useRedis) {
-        const client = await getRedisClient();
-        const keys = await withTimeout(client.keys(pattern), 3000);
-        if (keys.length > 0) {
-          await withTimeout(client.del(keys), 3000);
-          console.log(`[Cache] Deleted ${keys.length} keys matching pattern: ${pattern}`);
-        }
-      } else {
-        // For memory cache, manually match pattern
-        const regex = new RegExp(pattern.replace(/\*/g, '.*'));
-        const keysToDelete: string[] = [];
+      if (!useRedis) {
+        return;
+      }
 
-        for (const key of this.memoryCache.keys()) {
-          if (regex.test(key)) {
-            keysToDelete.push(key);
-          }
-        }
-
-        keysToDelete.forEach((key) => this.memoryCache.delete(key));
-        if (keysToDelete.length > 0) {
-          console.log(`[Cache] Deleted ${keysToDelete.length} keys matching pattern: ${pattern}`);
-        }
+      const client = await getRedisClient();
+      const keys = await withTimeout(client.keys(pattern), 3000);
+      if (keys.length > 0) {
+        await withTimeout(client.del(keys), 3000);
+        console.log(`[Cache] Deleted ${keys.length} keys matching pattern: ${pattern}`);
       }
     } catch (error) {
       console.error('[Cache] Error deleting pattern:', error);
@@ -226,41 +171,26 @@ class CacheManager {
     try {
       const useRedis = await this.checkRedisAvailable();
 
-      if (useRedis) {
-        const client = await getRedisClient();
-        // Only delete keys with our namespace prefix to avoid affecting other apps
-        const keys = await withTimeout(client.keys('newsletter:*'), 3000);
-        if (keys.length > 0) {
-          await withTimeout(client.del(keys), 3000);
-          console.log(`[Cache] Cleared ${keys.length} newsletter cache entries`);
-        }
-      } else {
-        this.memoryCache.clear();
+      if (!useRedis) {
+        return;
+      }
+
+      const client = await getRedisClient();
+      // Only delete keys with our namespace prefix to avoid affecting other apps
+      const keys = await withTimeout(client.keys('newsletter:*'), 3000);
+      if (keys.length > 0) {
+        await withTimeout(client.del(keys), 3000);
+        console.log(`[Cache] Cleared ${keys.length} newsletter cache entries`);
       }
     } catch (error) {
       console.error('[Cache] Error clearing cache:', error);
-      this.memoryCache.clear();
-    }
-  }
-
-  /**
-   * Cleanup expired entries (only relevant for memory cache)
-   */
-  cleanup(): void {
-    // Only clean memory cache - Redis handles TTL automatically
-    const now = Date.now();
-    for (const [key, entry] of this.memoryCache.entries()) {
-      const age = now - entry.timestamp;
-      if (age > entry.ttl) {
-        this.memoryCache.delete(key);
-      }
     }
   }
 
   /**
    * Get cache statistics
    */
-  async getStats(): Promise<{ keys: number; type: 'redis' | 'memory' }> {
+  async getStats(): Promise<{ keys: number; type: 'redis' }> {
     try {
       const useRedis = await this.checkRedisAvailable();
 
@@ -268,12 +198,12 @@ class CacheManager {
         const client = await getRedisClient();
         const keys = await withTimeout(client.keys('newsletter:*'), 3000);
         return { keys: keys.length, type: 'redis' };
-      } else {
-        return { keys: this.memoryCache.size, type: 'memory' };
       }
+
+      return { keys: 0, type: 'redis' };
     } catch (error) {
       console.error('[Cache] Error getting stats:', error);
-      return { keys: this.memoryCache.size, type: 'memory' };
+      return { keys: 0, type: 'redis' };
     }
   }
 }
@@ -281,21 +211,11 @@ class CacheManager {
 // Create cache instance
 export const cache = new CacheManager();
 
-// Cleanup every 5 minutes (only for memory cache)
-setInterval(
-  () => {
-    cache.cleanup();
-  },
-  5 * 60 * 1000
-);
-
 // Cache key generators
 export const cacheKeys = {
   newsletter: (id: string) => `newsletter:${id}`,
   newsletterBySlug: (slug: string) => `newsletter:slug:${slug}`,
-  newsletters: (filters: string) => `newsletters:${filters}`,
-  newslettersList: (status?: string, authorId?: string) =>
-    `newsletters:list:${status || 'all'}:${authorId || 'all'}`,
+  newslettersAll: () => 'newsletters:all',
   newslettersTop: (limit: number, excludeId?: string) =>
     `newsletters:top:${limit}:${excludeId || 'none'}`,
   subscriber: (email: string) => `subscriber:${email}`,
@@ -309,7 +229,9 @@ export const cacheInvalidation = {
    * Invalidate all newsletter-related caches
    */
   async invalidateAllNewsletters(): Promise<void> {
-    await cache.deletePattern('newsletter*');
+    await cache.delete(cacheKeys.newslettersAll());
+    await cache.deletePattern('newsletters:top:*');
+    await cache.deletePattern('newsletter:*');
   },
 
   /**
@@ -320,8 +242,7 @@ export const cacheInvalidation = {
     if (slug) {
       await cache.delete(cacheKeys.newsletterBySlug(slug));
     }
-    // Also invalidate lists as they might contain this newsletter
-    await cache.deletePattern('newsletters:list:*');
+    await cache.delete(cacheKeys.newslettersAll());
     await cache.deletePattern('newsletters:top:*');
   },
 
@@ -329,7 +250,7 @@ export const cacheInvalidation = {
    * Invalidate newsletter list caches
    */
   async invalidateNewsletterLists(): Promise<void> {
-    await cache.deletePattern('newsletters:list:*');
+    await cache.delete(cacheKeys.newslettersAll());
     await cache.deletePattern('newsletters:top:*');
   },
 };

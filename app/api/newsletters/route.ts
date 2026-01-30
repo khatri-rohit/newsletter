@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as admin from 'firebase-admin';
 import { NewsletterService } from '@/services/newsletter.service';
 import { cache, cacheKeys } from '@/lib/cache';
+import { Newsletter } from '@/services/types';
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
@@ -28,21 +29,53 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '20');
     const startAfter = searchParams.get('startAfter');
 
-    // Create cache key based on filters
-    const cacheKey = cacheKeys.newslettersList(status || undefined, authorId || undefined);
+    const isPublishedList = status === 'published' && !startAfter;
+    const cacheKey = cacheKeys.newslettersAll();
 
-    // Check cache first (only for published newsletters without pagination)
-    if (status === 'published' && !startAfter) {
-      const cachedResult = await cache.get(cacheKey);
-      if (cachedResult) {
+    if (isPublishedList) {
+      const cachedAll = await cache.get<Newsletter[]>(cacheKey);
+
+      if (cachedAll && cachedAll.length > 0) {
+        const filtered = authorId
+          ? cachedAll.filter((newsletter) => newsletter.authorId === authorId)
+          : cachedAll;
+        const sliced = filtered.slice(0, limit);
+
         const response = NextResponse.json({
           success: true,
-          data: cachedResult,
+          data: {
+            newsletters: sliced,
+            hasMore: filtered.length > limit,
+          },
         });
         response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
         response.headers.set('X-Cache', 'HIT');
         return response;
       }
+
+      const cacheLimit = 1000;
+      const publishedResult = await newsletterService.listNewsletters({
+        status: 'published',
+        limit: cacheLimit,
+      });
+
+      await cache.set(cacheKey, publishedResult.newsletters, 5 * 60 * 1000);
+
+      const filtered = authorId
+        ? publishedResult.newsletters.filter((newsletter) => newsletter.authorId === authorId)
+        : publishedResult.newsletters;
+      const sliced = filtered.slice(0, limit);
+
+      const response = NextResponse.json({
+        success: true,
+        data: {
+          newsletters: sliced,
+          hasMore: filtered.length > limit,
+        },
+      });
+      response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+      response.headers.set('X-Cache', 'MISS');
+      return response;
     }
 
     const result = await newsletterService.listNewsletters({
@@ -52,23 +85,10 @@ export async function GET(request: NextRequest) {
       startAfter: startAfter || undefined,
     });
 
-    // Cache published newsletters list (5 minutes)
-    if (status === 'published' && !startAfter) {
-      await cache.set(cacheKey, result, 5 * 60 * 1000);
-    }
-
-    const response = NextResponse.json({
+    return NextResponse.json({
       success: true,
       data: result,
     });
-
-    // Add cache headers for published newsletters
-    if (status === 'published') {
-      response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-      response.headers.set('X-Cache', 'MISS');
-    }
-
-    return response;
   } catch (error) {
     console.error('Error fetching newsletters:', error);
     return NextResponse.json(
