@@ -12,6 +12,7 @@ import {
 import { auth } from './firebase';
 import apiClient from './axios';
 import { logger } from './logger';
+import { FirebaseError } from 'firebase/app';
 
 interface AuthContextType {
     user: User | null;
@@ -20,6 +21,74 @@ interface AuthContextType {
     signInWithGithub: () => Promise<void>;
     signOut: () => Promise<void>;
     isAdmin: boolean;
+}
+
+interface AuthError {
+    code: string;
+    message: string;
+    userMessage: string;
+}
+
+// ==========================================
+// HELPER: Get user-friendly error messages
+// ==========================================
+
+function getAuthErrorMessage(error: unknown): AuthError {
+    if (error instanceof FirebaseError) {
+        console.log(error);
+        const code = error.code;
+
+        switch (code) {
+            case 'auth/account-exists-with-different-credential':
+                return {
+                    code,
+                    message: error.message,
+                    userMessage: 'An account already exists with the same email address but different sign-in credentials. Please sign in using the original provider (Google or GitHub) you used to create your account.'
+                };
+            case 'auth/popup-closed-by-user':
+                return {
+                    code,
+                    message: error.message,
+                    userMessage: 'Sign-in popup was closed. Please try again.'
+                };
+            case 'auth/popup-blocked':
+                return {
+                    code,
+                    message: error.message,
+                    userMessage: 'Sign-in popup was blocked by your browser. Please allow popups for this site and try again.'
+                };
+            case 'auth/cancelled-popup-request':
+                return {
+                    code,
+                    message: error.message,
+                    userMessage: 'Only one sign-in popup is allowed at a time. Please try again.'
+                };
+            case 'auth/network-request-failed':
+                return {
+                    code,
+                    message: error.message,
+                    userMessage: 'Network error occurred. Please check your internet connection and try again.'
+                };
+            case 'auth/too-many-requests':
+                return {
+                    code,
+                    message: error.message,
+                    userMessage: 'Too many unsuccessful sign-in attempts. Please try again later.'
+                };
+            default:
+                return {
+                    code,
+                    message: error.message,
+                    userMessage: `Authentication failed: ${error.message}`
+                };
+        }
+    }
+
+    return {
+        code: 'unknown',
+        message: String(error),
+        userMessage: 'An unexpected error occurred during sign-in. Please try again.'
+    };
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -107,8 +176,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             console.log('[Auth] Google sign-in successful');
         } catch (error) {
-            console.error('Error signing in with Google:', error);
-            throw error;
+            const authError = getAuthErrorMessage(error);
+            console.error('Error signing in with Google:', authError);
+
+            logger.error('Google sign-in failed', {
+                code: authError.code,
+                message: authError.message,
+            });
+
+            throw authError;
         }
     };
 
@@ -122,8 +198,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             console.log('[Auth] GitHub sign-in successful');
         } catch (error) {
-            console.error('Error signing in with Github:', error);
-            throw error;
+            const authError = getAuthErrorMessage(error);
+            console.error('Error signing in with Github:', authError);
+
+            logger.error('GitHub sign-in failed', {
+                code: authError.code,
+                message: authError.message,
+            });
+
+            throw authError;
         }
     };
 

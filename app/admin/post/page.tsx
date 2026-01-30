@@ -317,7 +317,7 @@ function AdminPostContent() {
             if (result.success) {
                 toast.success('Newsletter scheduled successfully! 📅', {
                     description: `Will be published on ${scheduledDate.toLocaleString()}`,
-                    className: 'text-gray-800!',
+                    descriptionClassName: 'text-gray-900!',
                 });
 
                 // Store the newsletter ID if it's a new one
@@ -366,6 +366,7 @@ function AdminPostContent() {
             if (result.success) {
                 toast.success('Newsletter published successfully! 🎉', {
                     description: 'Newsletter is now live. Use "Send to Subscribers" to notify your audience.',
+                    descriptionClassName: 'text-gray-900!',
                 });
 
                 // Store the newsletter ID if it's a new one
@@ -411,6 +412,7 @@ function AdminPostContent() {
             if (result.success) {
                 toast.success('Newsletter sent successfully! 📧', {
                     description: result.message || 'Emails are being sent to all subscribers',
+                    descriptionClassName: 'text-gray-900!',
                 });
             } else {
                 throw new Error(result.error || 'Failed to send newsletter');

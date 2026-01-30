@@ -102,6 +102,7 @@ export default function AdminDraftsPage() {
             if (result.success) {
                 toast.success('Newsletter sent successfully! 📧', {
                     description: result.message || 'Emails are being sent to all subscribers',
+                    descriptionClassName: 'text-gray-900!',
                 });
             } else {
                 throw new Error(result.error || 'Failed to send newsletter');
@@ -154,6 +155,7 @@ export default function AdminDraftsPage() {
             if (result.success) {
                 toast.success('Newsletter published and sent! 🎉', {
                     description: result.message || 'Emails are being sent to all subscribers',
+                    descriptionClassName: 'text-gray-900!',
                 });
             } else {
                 toast.success('Newsletter published successfully');

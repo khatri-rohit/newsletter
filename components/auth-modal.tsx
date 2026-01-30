@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import { useState } from 'react';
 import { useAuth } from '@/lib/auth-context';
+import { toast } from 'sonner';
 import {
     Dialog,
     DialogContent,
@@ -26,8 +28,16 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             setLoading('google');
             await signInWithGoogle();
             onOpenChange(false);
-        } catch (error) {
+            toast.success('Successfully signed in with Google!');
+        } catch (error: any) {
             console.error('Failed to sign in with Google:', error);
+
+            // Don't show toast for user-cancelled actions
+            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                return;
+            }
+
+            toast.error(error.userMessage || 'Failed to sign in with Google. Please try again.');
         } finally {
             setLoading(null);
         }
@@ -38,8 +48,16 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
             setLoading('github');
             await signInWithGithub();
             onOpenChange(false);
-        } catch (error) {
+            toast.success('Successfully signed in with GitHub!');
+        } catch (error: any) {
             console.error('Failed to sign in with Github:', error);
+
+            // Don't show toast for user-cancelled actions
+            if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+                return;
+            }
+
+            toast.error(error.userMessage || 'Failed to sign in with GitHub. Please try again.');
         } finally {
             setLoading(null);
         }
@@ -47,7 +65,7 @@ export function AuthModal({ open, onOpenChange }: AuthModalProps) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[400px]">
+            <DialogContent className="sm:max-w-100">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-light">
                         Sign In
