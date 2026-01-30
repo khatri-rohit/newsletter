@@ -195,7 +195,7 @@ class CacheManager {
         const client = await getRedisClient();
         const keys = await withTimeout(client.keys(pattern), 3000);
         if (keys.length > 0) {
-          await withTimeout(client.del(...keys), 3000);
+          await withTimeout(client.del(keys as [string, ...string[]]), 3000);
           console.log(`[Cache] Deleted ${keys.length} keys matching pattern: ${pattern}`);
         }
       } else {
@@ -231,7 +231,7 @@ class CacheManager {
         // Only delete keys with our namespace prefix to avoid affecting other apps
         const keys = await withTimeout(client.keys('newsletter:*'), 3000);
         if (keys.length > 0) {
-          await withTimeout(client.del(...keys), 3000);
+          await withTimeout(client.del(keys as [string, ...string[]]), 3000);
           console.log(`[Cache] Cleared ${keys.length} newsletter cache entries`);
         }
       } else {
