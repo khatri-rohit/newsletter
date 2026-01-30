@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+const ALLOWED_ORIGINS = ['https://lownoise.thisisrohit.dev'];
+
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
@@ -17,6 +19,14 @@ export function proxy(request: NextRequest) {
   // Add cache headers for API routes with shorter TTL
   if (request.nextUrl.pathname.startsWith('/api/newsletters')) {
     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+  }
+
+  const origin = request.headers.get('origin');
+  const res = NextResponse.next();
+
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.headers.set('Access-Control-Allow-Origin', origin);
+    res.headers.set('Access-Control-Allow-Credentials', 'true');
   }
 
   return response;
