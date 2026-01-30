@@ -21,6 +21,7 @@ const Footer = ({ classname }: { classname?: string }) => {
                                     alt="Low Noise Logo"
                                     fill
                                     className="object-contain"
+                                    sizes=''
                                 />
                             </div>
                             <span className="text-lg sm:text-xl font-bold text-slate-900 transition-colors">

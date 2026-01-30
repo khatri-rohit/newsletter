@@ -91,18 +91,18 @@ export async function GET(request: NextRequest) {
     const cacheKey = cacheKeys.newslettersList(status || undefined, authorId || undefined);
 
     // Check cache first (only for published newsletters without pagination)
-    // if (status === 'published' && !startAfter) {
-    //   const cachedResult = await cache.get(cacheKey);
-    //   if (cachedResult) {
-    //     const response = NextResponse.json({
-    //       success: true,
-    //       data: cachedResult,
-    //     });
-    //     response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-    //     response.headers.set('X-Cache', 'HIT');
-    //     return response;
-    //   }
-    // }
+    if (status === 'published' && !startAfter) {
+      const cachedResult = await cache.get(cacheKey);
+      if (cachedResult) {
+        const response = NextResponse.json({
+          success: true,
+          data: cachedResult,
+        });
+        response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+        response.headers.set('X-Cache', 'HIT');
+        return response;
+      }
+    }
 
     const result = await newsletterService.listNewsletters({
       status: status || undefined,
