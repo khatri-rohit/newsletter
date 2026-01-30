@@ -87,35 +87,33 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    const cacheKey = cacheKeys.newslettersAll();
-    const cachedAll = await cache.get<Newsletter[]>(cacheKey);
+    // Check cache first
+    const cacheKey = cacheKeys.newsletterBySlug(slug);
+    const cachedNewsletter = await cache.get<Newsletter>(cacheKey);
 
-    if (cachedAll) {
-      const cachedNewsletter = cachedAll.find((newsletter) => newsletter.slug === slug);
-      if (cachedNewsletter) {
-        // Still increment views asynchronously with deduplication
-        if (cachedNewsletter.id) {
-          const viewerId = generateViewerId(request);
-          newsletterService.incrementViews(cachedNewsletter.id, viewerId).catch((error) => {
-            console.error('Error incrementing views:', error);
-          });
-        }
-
-        return NextResponse.json(
-          {
-            success: true,
-            data: cachedNewsletter,
-          },
-          {
-            headers: {
-              'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-              'X-Cache': 'HIT',
-              'X-RateLimit-Limit': '30',
-              'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            },
-          }
-        );
+    if (cachedNewsletter) {
+      // Still increment views asynchronously with deduplication
+      if (cachedNewsletter.id) {
+        const viewerId = generateViewerId(request);
+        newsletterService.incrementViews(cachedNewsletter.id, viewerId).catch((error) => {
+          console.error('Error incrementing views:', error);
+        });
       }
+
+      return NextResponse.json(
+        {
+          success: true,
+          data: cachedNewsletter,
+        },
+        {
+          headers: {
+            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+            'X-Cache': 'HIT',
+            'X-RateLimit-Limit': '30',
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+          },
+        }
+      );
     }
 
     // Fetch from database
@@ -133,25 +131,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    // Merge into all-newsletters cache (5 minutes TTL)
-    let mergedList = cachedAll;
-
-    if (!mergedList) {
-      const publishedResult = await newsletterService.listNewsletters({
-        status: 'published',
-        limit: 1000,
-      });
-      mergedList = publishedResult.newsletters;
-    }
-
-    const existingIndex = mergedList.findIndex((item) => item.id === newsletter.id);
-    if (existingIndex >= 0) {
-      mergedList[existingIndex] = newsletter;
-    } else {
-      mergedList.unshift(newsletter);
-    }
-
-    await cache.set(cacheKey, mergedList, 5 * 60 * 1000);
+    // Cache the result (5 minutes TTL)
+    await cache.set(cacheKey, newsletter, 5 * 60 * 1000);
 
     // Increment views asynchronously (fire and forget) with deduplication
     if (newsletter.id) {

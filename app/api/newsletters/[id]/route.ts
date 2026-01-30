@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import * as admin from 'firebase-admin';
 import { NewsletterService } from '@/services/newsletter.service';
 import { cache, cacheKeys } from '@/lib/cache';
-import { Newsletter } from '@/services/types';
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
@@ -25,17 +24,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
 
-    const cacheKey = cacheKeys.newslettersAll();
-    const cachedAll = await cache.get<Newsletter[]>(cacheKey);
+    // Check cache first
+    const cacheKey = cacheKeys.newsletter(id);
+    const cachedNewsletter = await cache.get(cacheKey);
 
-    if (cachedAll) {
-      const cachedNewsletter = cachedAll.find((newsletter) => newsletter.id === id);
-      if (cachedNewsletter) {
-        return NextResponse.json({
-          success: true,
-          data: cachedNewsletter,
-        });
-      }
+    if (cachedNewsletter) {
+      return NextResponse.json({
+        success: true,
+        data: cachedNewsletter,
+      });
     }
 
     const newsletter = await newsletterService.getNewsletter(id);
@@ -44,27 +41,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       return NextResponse.json({ success: false, error: 'Newsletter not found' }, { status: 404 });
     }
 
-    // Merge into all-newsletters cache if published
-    if (newsletter.status === 'published') {
-      let mergedList = cachedAll;
-
-      if (!mergedList) {
-        const publishedResult = await newsletterService.listNewsletters({
-          status: 'published',
-          limit: 1000,
-        });
-        mergedList = publishedResult.newsletters;
-      }
-
-      const existingIndex = mergedList.findIndex((item) => item.id === newsletter.id);
-      if (existingIndex >= 0) {
-        mergedList[existingIndex] = newsletter;
-      } else {
-        mergedList.unshift(newsletter);
-      }
-
-      await cache.set(cacheKey, mergedList, 5 * 60 * 1000);
-    }
+    // Cache the newsletter (5 minutes)
+    await cache.set(cacheKey, newsletter, 5 * 60 * 1000);
 
     return NextResponse.json({
       success: true,

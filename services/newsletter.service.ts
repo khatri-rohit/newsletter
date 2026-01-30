@@ -87,8 +87,8 @@ export class NewsletterService {
         ...newsletterData,
       } as Newsletter;
 
-      // Invalidate all newsletter caches
-      await cacheInvalidation.invalidateAllNewsletters();
+      // Invalidate newsletter list caches
+      await cacheInvalidation.invalidateNewsletterLists();
 
       return newsletter;
     } catch (error) {
@@ -165,8 +165,8 @@ export class NewsletterService {
         ...updatedDoc.data(),
       } as Newsletter;
 
-      // Invalidate all newsletter caches
-      await cacheInvalidation.invalidateAllNewsletters();
+      // Invalidate cache for this newsletter and lists
+      await cacheInvalidation.invalidateNewsletter(id, newsletter.slug);
 
       return newsletter;
     } catch (error) {
@@ -300,8 +300,8 @@ export class NewsletterService {
       // Delete the newsletter document
       await this.newslettersCollection.doc(id).delete();
 
-      // Invalidate all newsletter caches
-      await cacheInvalidation.invalidateAllNewsletters();
+      // Invalidate cache
+      await cacheInvalidation.invalidateNewsletter(id, newsletter.slug);
 
       console.log(
         `[NewsletterService] Successfully deleted newsletter ${id} and cleaned up resources`
@@ -423,8 +423,8 @@ export class NewsletterService {
         ...updatedDoc.data(),
       } as Newsletter;
 
-      // Invalidate all newsletter caches
-      await cacheInvalidation.invalidateAllNewsletters();
+      // Invalidate cache for this newsletter and all lists
+      await cacheInvalidation.invalidateNewsletter(id, newsletter.slug);
 
       return newsletter;
     } catch (error) {
