@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as admin from 'firebase-admin';
 import { NewsletterService } from '@/services/newsletter.service';
-import { cache, cacheKeys } from '@/lib/cache';
 import { apiLimiter, getClientIdentifier } from '@/lib/rate-limit';
 import { slugSchema } from '@/lib/validation';
-import { Newsletter } from '@/services/types';
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
@@ -87,35 +85,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       );
     }
 
-    // Check cache first
-    const cacheKey = cacheKeys.newsletterBySlug(slug);
-    const cachedNewsletter = await cache.get<Newsletter>(cacheKey);
-
-    if (cachedNewsletter) {
-      // Still increment views asynchronously with deduplication
-      if (cachedNewsletter.id) {
-        const viewerId = generateViewerId(request);
-        newsletterService.incrementViews(cachedNewsletter.id, viewerId).catch((error) => {
-          console.error('Error incrementing views:', error);
-        });
-      }
-
-      return NextResponse.json(
-        {
-          success: true,
-          data: cachedNewsletter,
-        },
-        {
-          headers: {
-            'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-            'X-Cache': 'HIT',
-            'X-RateLimit-Limit': '30',
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-          },
-        }
-      );
-    }
-
     // Fetch from database
     const newsletter = await newsletterService.getNewsletterBySlug(slug);
 
@@ -130,9 +99,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
         { status: 404 }
       );
     }
-
-    // Cache the result (5 minutes TTL)
-    await cache.set(cacheKey, newsletter, 5 * 60 * 1000);
 
     // Increment views asynchronously (fire and forget) with deduplication
     if (newsletter.id) {
@@ -150,7 +116,6 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       {
         headers: {
           'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
-          'X-Cache': 'MISS',
           'X-RateLimit-Limit': '30',
           'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
         },

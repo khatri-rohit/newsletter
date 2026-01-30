@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as admin from 'firebase-admin';
 import { NewsletterService } from '@/services/newsletter.service';
-import { cache, cacheKeys } from '@/lib/cache';
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
@@ -87,34 +86,12 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Create cache key based on filters
-    const cacheKey = cacheKeys.newslettersList(status || undefined, authorId || undefined);
-
-    // Check cache first (only for published newsletters without pagination)
-    if (status === 'published' && !startAfter) {
-      const cachedResult = await cache.get(cacheKey);
-      if (cachedResult) {
-        const response = NextResponse.json({
-          success: true,
-          data: cachedResult,
-        });
-        response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-        response.headers.set('X-Cache', 'HIT');
-        return response;
-      }
-    }
-
     const result = await newsletterService.listNewsletters({
       status: status || undefined,
       authorId: authorId || undefined,
       limit,
       startAfter: startAfter || undefined,
     });
-
-    // Cache published newsletters list (5 minutes)
-    if (status === 'published' && !startAfter) {
-      await cache.set(cacheKey, result, 5 * 60 * 1000);
-    }
 
     const response = NextResponse.json({
       success: true,
@@ -124,7 +101,6 @@ export async function GET(request: NextRequest) {
     // Add cache headers for published newsletters
     if (status === 'published') {
       response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-      response.headers.set('X-Cache', 'MISS');
     }
 
     return response;

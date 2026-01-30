@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirebaseAdmin } from '@/lib/firebase-admin';
-import { getRedisHealth, getRedisMetrics } from '@/lib/redis-client';
 
 /**
  * GET /api/health
@@ -10,7 +9,6 @@ export async function GET(request: NextRequest) {
   const checks: Record<string, boolean> = {
     server: true,
     firebase: false,
-    redis: false,
   };
 
   const details: Record<string, unknown> = {};
@@ -30,57 +28,11 @@ export async function GET(request: NextRequest) {
     };
   }
 
-  // Check Redis connection - ACTIVELY test the connection
-  try {
-    const { getRedisClient } = await import('@/lib/redis-client');
-    const redisHealth = getRedisHealth();
-    const redisMetrics = getRedisMetrics();
-
-    // Attempt to get client and ping (this triggers connection if not connected)
-    let canConnect = false;
-    try {
-      const client = await getRedisClient();
-      if (client && client.isOpen) {
-        await client.ping();
-        canConnect = true;
-      }
-    } catch (pingError) {
-      console.error('[Health] Redis ping failed:', pingError);
-      canConnect = false;
-    }
-
-    checks.redis = canConnect && redisHealth.isHealthy;
-    details.redis = {
-      status: canConnect && redisHealth.isHealthy ? 'healthy' : 'degraded',
-      health: redisHealth,
-      canConnect,
-      metrics: {
-        totalConnections: redisMetrics.totalConnections,
-        failedConnections: redisMetrics.failedConnections,
-        successRate:
-          redisMetrics.totalConnections > 0
-            ? (
-                ((redisMetrics.totalConnections - redisMetrics.failedConnections) /
-                  redisMetrics.totalConnections) *
-                100
-              ).toFixed(2) + '%'
-            : 'N/A',
-      },
-    };
-  } catch (error) {
-    console.error('[Health] Redis check failed:', error);
-    details.redis = {
-      status: 'error',
-      error: error instanceof Error ? error.message : 'Unknown error',
-    };
-  }
-
   const allHealthy = Object.values(checks).every((check) => check);
-  const criticalHealthy = checks.server && checks.firebase; // Redis is optional
 
   return NextResponse.json(
     {
-      status: allHealthy ? 'healthy' : criticalHealthy ? 'degraded' : 'unhealthy',
+      status: allHealthy ? 'healthy' : 'unhealthy',
       timestamp: new Date().toISOString(),
       checks,
       details,
@@ -95,7 +47,7 @@ export async function GET(request: NextRequest) {
       },
     },
     {
-      status: allHealthy ? 200 : criticalHealthy ? 503 : 500,
+      status: allHealthy ? 200 : 500,
       headers: {
         'Cache-Control': 'no-cache, no-store, must-revalidate',
         Pragma: 'no-cache',

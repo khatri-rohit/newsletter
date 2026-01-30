@@ -2,7 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import * as admin from 'firebase-admin';
 import { NewsletterService } from '@/services/newsletter.service';
-import { cache, cacheKeys } from '@/lib/cache';
 
 // Initialize Firebase Admin
 if (admin.apps.length === 0) {
@@ -25,25 +24,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   try {
     const { id } = await params;
 
-    // Check cache first
-    const cacheKey = cacheKeys.newsletter(id);
-    const cachedNewsletter = await cache.get(cacheKey);
-
-    if (cachedNewsletter) {
-      return NextResponse.json({
-        success: true,
-        data: cachedNewsletter,
-      });
-    }
-
     const newsletter = await newsletterService.getNewsletter(id);
 
     if (!newsletter) {
       return NextResponse.json({ success: false, error: 'Newsletter not found' }, { status: 404 });
     }
-
-    // Cache the newsletter (5 minutes)
-    await cache.set(cacheKey, newsletter, 5 * 60 * 1000);
 
     return NextResponse.json({
       success: true,
