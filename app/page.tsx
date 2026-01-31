@@ -14,7 +14,25 @@ async function getNewsletters(): Promise<Newsletter[]> {
   try {
     const service = new NewsletterService();
     const result = await service.listNewsletters({ status: 'published', limit: 20 });
-    return result.newsletters || [];
+    // Serialize Firestore Timestamp fields to ISO strings
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const serializeTimestamp = (ts: any) => {
+      if (!ts) return null;
+      if (typeof ts.toDate === 'function') return ts.toDate().toISOString();
+      if (typeof ts === 'object' && '_seconds' in ts && '_nanoseconds' in ts) {
+        // Firestore Timestamp plain object
+        return new Date(ts._seconds * 1000 + Math.floor(ts._nanoseconds / 1e6)).toISOString();
+      }
+      return ts;
+    };
+    const newsletters = (result.newsletters || []).map((n) => ({
+      ...n,
+      createdAt: serializeTimestamp(n.createdAt),
+      updatedAt: serializeTimestamp(n.updatedAt),
+      publishedAt: serializeTimestamp(n.publishedAt),
+      scheduledFor: serializeTimestamp(n.scheduledFor),
+    }));
+    return newsletters;
   } catch (error) {
     console.error('Error fetching newsletters:', error);
     return [];
