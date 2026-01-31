@@ -1,20 +1,26 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const ALLOWED_ORIGINS = ['https://thisisrohit.dev'];
+const ALLOWED_ORIGINS = [
+  'https://thisisrohit.dev',
+  'https://rohitkhatri.vercel.app',
+  'https://rohit-terminal.vercel.app',
+  'https://www.thisisrohit.dev',
+  'http://localhost:3000',
+];
 
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   // Add cache headers for static assets
-  // if (
-  //   request.nextUrl.pathname.startsWith('/_next/static') ||
-  //   request.nextUrl.pathname.includes('/fonts/') ||
-  //   request.nextUrl.pathname.includes('.webmanifest') ||
-  //   request.nextUrl.pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|avif)$/)
-  // ) {
-  //   response.headers.set('Cache-Control', 'public, max-age=3600, immutable');
-  // }
+  if (
+    request.nextUrl.pathname.startsWith('/_next/static') ||
+    request.nextUrl.pathname.includes('/fonts/') ||
+    request.nextUrl.pathname.includes('.webmanifest') ||
+    request.nextUrl.pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|avif)$/)
+  ) {
+    response.headers.set('Cache-Control', 'public, max-age=3600, immutable');
+  }
 
   // Add cache headers for API routes with shorter TTL
   if (request.nextUrl.pathname.startsWith('/api/newsletters')) {
@@ -22,11 +28,9 @@ export function proxy(request: NextRequest) {
   }
 
   const origin = request.headers.get('origin');
-  const res = NextResponse.next();
-
   if (origin && ALLOWED_ORIGINS.includes(origin)) {
-    res.headers.set('Access-Control-Allow-Origin', origin);
-    res.headers.set('Access-Control-Allow-Credentials', 'true');
+    response.headers.set('Access-Control-Allow-Origin', origin);
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
   }
 
   return response;
