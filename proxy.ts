@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-const ALLOWED_ORIGINS = ['https://lownoise.thisisrohit.dev'];
+const ALLOWED_ORIGINS = ['https://thisisrohit.dev'];
 
 export function proxy(request: NextRequest) {
   const response = NextResponse.next();
