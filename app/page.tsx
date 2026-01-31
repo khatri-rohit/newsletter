@@ -4,6 +4,7 @@ import { HeaderWrapper } from "@/components/header-wrapper";
 import { HeroSection } from "./hero-section";
 import { HomeClient } from "./home-client";
 import { Newsletter } from "@/services/types";
+import apiClient from "@/lib/axios";
 
 /**
  * Server-side data fetching for newsletters
@@ -12,20 +13,27 @@ import { Newsletter } from "@/services/types";
 async function getNewsletters(): Promise<Newsletter[]> {
   try {
     const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/api/newsletters?status=published&limit=20`, {
-      next: { revalidate: 300 }, // Revalidate every 5 minutes
+    const response = await apiClient.get('/api/newsletters?status=published&limit=20', {
       headers: {
         'Content-Type': 'application/json',
       },
-    });
+      httpVersion: 2,
+      baseURL: baseUrl,
+    })
+    // console.log('Response:', response);
+    // const response = await fetch(`${baseUrl}/api/newsletters?status=published&limit=20`, {
+    //   next: { revalidate: 300 }, // Revalidate every 5 minutes
+    //   headers: {
+    //     'Content-Type': 'application/json',
+    //   },
+    // });
 
-    if (!response.ok) {
+    if (response.status !== 200) {
       console.error('Failed to fetch newsletters:', response.statusText);
       return [];
     }
 
-    const data = await response.json();
-    return data.data?.newsletters || [];
+    return response.data.data?.newsletters || [];
   } catch (error) {
     console.error('Error fetching newsletters:', error);
     return [];

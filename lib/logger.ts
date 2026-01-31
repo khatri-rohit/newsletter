@@ -66,6 +66,7 @@ class Logger {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private sendToLoggingService(_level: LogLevel, _message: string, _metadata?: LogMetadata): void {
     // Implement your logging service integration here
     // Examples: CloudWatch, Datadog, LogRocket, etc.
@@ -81,6 +82,7 @@ class Logger {
     }
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private sendToErrorTracking(_error: Error, _metadata?: LogMetadata): void {
     // Implement error tracking integration here
     // Example: Sentry.captureException(error, { extra: metadata });
