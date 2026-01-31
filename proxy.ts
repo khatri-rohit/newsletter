@@ -7,18 +7,18 @@ export function proxy(request: NextRequest) {
   const response = NextResponse.next();
 
   // Add cache headers for static assets
-  if (
-    request.nextUrl.pathname.startsWith('/_next/static') ||
-    request.nextUrl.pathname.includes('/fonts/') ||
-    request.nextUrl.pathname.includes('.webmanifest') ||
-    request.nextUrl.pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|avif)$/)
-  ) {
-    response.headers.set('Cache-Control', 'public, max-age=3600, immutable');
-  }
+  // if (
+  //   request.nextUrl.pathname.startsWith('/_next/static') ||
+  //   request.nextUrl.pathname.includes('/fonts/') ||
+  //   request.nextUrl.pathname.includes('.webmanifest') ||
+  //   request.nextUrl.pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|avif)$/)
+  // ) {
+  //   response.headers.set('Cache-Control', 'public, max-age=3600, immutable');
+  // }
 
   // Add cache headers for API routes with shorter TTL
   if (request.nextUrl.pathname.startsWith('/api/newsletters')) {
-    response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    // response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
   }
 
   const origin = request.headers.get('origin');

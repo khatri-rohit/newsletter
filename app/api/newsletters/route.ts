@@ -99,9 +99,9 @@ export async function GET(request: NextRequest) {
     });
 
     // Add cache headers for published newsletters
-    if (status === 'published') {
-      response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
-    }
+    // if (status === 'published') {
+    //   response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=600');
+    // }
 
     return response;
   } catch (error) {

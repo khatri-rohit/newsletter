@@ -527,7 +527,7 @@ export async function GET(
       {
         status: 200,
         headers: {
-          'Cache-Control': 'private, max-age=300',
+          // 'Cache-Control': 'private, max-age=300',
           'X-Correlation-ID': correlationId,
           'X-Response-Time': `${duration}ms`,
         },

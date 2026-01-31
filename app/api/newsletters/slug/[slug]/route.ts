@@ -115,7 +115,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       },
       {
         headers: {
-          'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+          // 'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
           'X-RateLimit-Limit': '30',
           'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
         },
