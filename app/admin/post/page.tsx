@@ -546,7 +546,7 @@ function AdminPostContent() {
                                         disabled={thumbnailUploading}
                                         className="mb-2"
                                     />
-                                    <p className="text-sm text-gray-500">
+                                    <p className="text-sm text-gray-500 outline-none!">
                                         {thumbnailUploading ? 'Uploading...' : 'Max 5MB, JPG/PNG/WebP'}
                                     </p>
                                 </div>
@@ -565,7 +565,7 @@ function AdminPostContent() {
                                 onChange={(e) =>
                                     setFormData((prev) => ({ ...prev, title: e.target.value }))
                                 }
-                                className="text-lg sm:text-xl md:text-2xl font-bold"
+                                className="text-lg sm:text-xl md:text-2xl font-bold outline-none!"
                             />
                         </div>
 
@@ -580,7 +580,7 @@ function AdminPostContent() {
                                     setFormData((prev) => ({ ...prev, excerpt: e.target.value }))
                                 }
                                 rows={3}
-                                className="text-sm sm:text-base"
+                                className="text-sm sm:text-base outline-none!"
                             />
                             <p className="text-xs sm:text-sm text-gray-500">
                                 {formData.excerpt.length} characters
@@ -605,6 +605,7 @@ function AdminPostContent() {
                                             handleAddTag();
                                         }
                                     }}
+                                    className='outline-none!'
                                 />
                                 <Button onClick={handleAddTag} variant="outline">
                                     Add
@@ -641,7 +642,7 @@ function AdminPostContent() {
                                     setFormData((prev) => ({ ...prev, scheduledFor: e.target.value }))
                                 }
                                 min={new Date().toISOString().slice(0, 16)}
-                                className="text-sm sm:text-base"
+                                className="text-sm sm:text-base outline-none!"
                             />
                             <p className="text-xs sm:text-sm text-gray-500">
                                 {formData.scheduledFor

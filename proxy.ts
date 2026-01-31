@@ -13,7 +13,7 @@ export function proxy(request: NextRequest) {
     request.nextUrl.pathname.includes('.webmanifest') ||
     request.nextUrl.pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|avif)$/)
   ) {
-    response.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+    response.headers.set('Cache-Control', 'public, max-age=3600, immutable');
   }
 
   // Add cache headers for API routes with shorter TTL
